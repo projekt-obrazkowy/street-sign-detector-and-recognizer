@@ -13,6 +13,7 @@ jobs:
       - name: Run
         run: docker run -t app
       - name: Publish
+        if: github.ref == 'refs/heads/master'
         uses: matootie/github-docker@v2.2.2
         with:
           accessToken: ${{github.token}}
