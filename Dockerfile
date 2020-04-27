@@ -8,4 +8,4 @@ WORKDIR /app
 COPY . /app
 RUN ./gradlew fatJar --no-daemon
 
-CMD ["java", "-jar", "/app/build/libs/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/build/libs/app.jar"]
