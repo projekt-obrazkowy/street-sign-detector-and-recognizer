@@ -13,5 +13,14 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    implementation files('/usr/share/java/opencv.jar')
+    compile files('/usr/share/java/opencv.jar')
+}
+
+task fatJar(type: Jar) {
+    archiveFileName = "app.jar"
+    manifest {
+        attributes 'Main-Class': 'Main'
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }
