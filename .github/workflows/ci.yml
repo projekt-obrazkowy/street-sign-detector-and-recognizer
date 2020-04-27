@@ -8,9 +8,5 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Setup Java
-        uses: actions/setup-java@v1
-        with:
-          java-version: 8
-      - name: Build
-        run: ./gradlew build
+      - name: Docker build
+        run: docker build -t app .
