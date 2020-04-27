@@ -8,4 +8,4 @@ WORKDIR /app
 COPY . /app
 RUN ./gradlew build --no-daemon
 
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+CMD ["java", "-jar", "/app/app.jar"]
