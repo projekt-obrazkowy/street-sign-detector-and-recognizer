@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
@@ -29,8 +30,7 @@ def class_text_to_int(row_label):
     for label in LABELS:
         if label == row_label:
             return index
-        else
-            index++
+        index = index + 1
 
 def split(df, group):
     data = namedtuple('data', ['filename', 'object'])
@@ -39,7 +39,7 @@ def split(df, group):
 
 
 def create_tf_example(group, path):
-    with tf.gfile.GFile(os.path.join(path, '{}'.format(group.filename)), 'rb') as fid:
+    with tf.io.gfile.GFile(os.path.join(path, '{}'.format(group.filename)), 'rb') as fid:
         encoded_jpg = fid.read()
     encoded_jpg_io = io.BytesIO(encoded_jpg)
     image = Image.open(encoded_jpg_io)
@@ -81,7 +81,7 @@ def create_tf_example(group, path):
 
 
 def main(_):
-    writer = tf.python_io.TFRecordWriter(RECORD_TEST_FILE)
+    writer = tf.io.TFRecordWriter(RECORD_TEST_FILE)
     examples = pd.read_csv(CSV_TEST_FILE)
     grouped = split(examples, 'filename')
     for group in grouped:
@@ -89,7 +89,7 @@ def main(_):
         writer.write(tf_example.SerializeToString())
     writer.close()
 
-    writer = tf.python_io.TFRecordWriter(RECORD_TRAIN_FILE)
+    writer = tf.io.TFRecordWriter(RECORD_TRAIN_FILE)
     examples = pd.read_csv(CSV_TRAIN_FILE)
     grouped = split(examples, 'filename')
     for group in grouped:
@@ -98,4 +98,4 @@ def main(_):
     writer.close()
 
 if __name__ == '__main__':
-    tf.app.run()
+    tf.compat.v1.app.run()
