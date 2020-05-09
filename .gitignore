@@ -1,4 +1,2 @@
-.idea/
-.gradle/
-build/
-local.properties
+models/train/**
+!models/train/.gitkeep

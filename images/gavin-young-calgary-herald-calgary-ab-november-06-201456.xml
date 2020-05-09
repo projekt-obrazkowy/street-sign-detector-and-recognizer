@@ -1,0 +1,26 @@
+<annotation verified="yes">
+	<folder>images</folder>
+	<filename>gavin-young-calgary-herald-calgary-ab-november-06-201456.jpg</filename>
+	<path>/home/dawidd6/github/projekt-obrazkowy/street-sign-detector-and-recognizer/images/gavin-young-calgary-herald-calgary-ab-november-06-201456.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>380</width>
+		<height>285</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>stop_sign</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>170</xmin>
+			<ymin>24</ymin>
+			<xmax>309</xmax>
+			<ymax>165</ymax>
+		</bndbox>
+	</object>
+</annotation>

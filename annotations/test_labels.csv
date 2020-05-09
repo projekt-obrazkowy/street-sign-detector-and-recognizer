@@ -1,0 +1,3 @@
+filename,width,height,class,xmin,ymin,xmax,ymax
+stop_sign_accidents-222x300.jpg,222,300,stop_sign,65,38,174,159
+stop-sign-generic.jpg,724,483,stop_sign,383,100,585,318
