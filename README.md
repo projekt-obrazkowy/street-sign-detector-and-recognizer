@@ -44,7 +44,7 @@ Correctly label images with proper names.
 ### Partition images
 
 ```sh
-./scripts/partition_images.py
+./scripts/partition_images.sh
 ```
 
 ### Convert `.xml` files to `.csv`
