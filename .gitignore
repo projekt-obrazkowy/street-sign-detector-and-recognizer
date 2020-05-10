@@ -1,4 +1,4 @@
-.idea/
-.gradle/
-build/
-local.properties
+**/__pycache__/
+
+models/train/**
+!models/train/.gitkeep

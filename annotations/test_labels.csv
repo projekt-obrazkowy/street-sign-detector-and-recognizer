@@ -1,0 +1,14 @@
+filename,width,height,class,xmin,ymin,xmax,ymax
+20.jpg,1300,876,stop_sign,223,119,469,366
+2.jpg,640,360,stop_sign,291,139,428,271
+10.jpg,625,417,stop_sign,108,51,361,303
+11.jpg,216,234,stop_sign,34,24,185,198
+12.jpg,259,194,stop_sign,60,61,152,150
+17.jpg,1280,720,stop_sign,429,62,869,498
+14.jpg,1200,675,stop_sign,364,2,1152,652
+13.jpg,1200,798,stop_sign,235,213,370,359
+18.jpg,724,483,stop_sign,381,101,583,317
+15.jpg,800,690,stop_sign,484,41,680,236
+16.jpg,648,433,stop_sign,302,14,524,249
+19.jpg,1920,1080,stop_sign,763,413,1042,699
+1.jpg,960,640,stop_sign,302,114,860,619

@@ -1,11 +1,16 @@
-FROM ubuntu:focal
+FROM python:3.7-slim
 
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update
-RUN apt-get install -yq libopencv-dev libopencv4.2-java openjdk-11-jdk
+COPY . /app
 
 WORKDIR /app
-COPY . /app
-RUN ./gradlew fatJar --no-daemon
 
-ENTRYPOINT ["java", "-jar", "/app/build/libs/app.jar"]
+# gcc is needed for pycocotools
+RUN apt-get update && apt-get install -yq build-essential
+
+# must be installed before pycocotools
+RUN pip3 install Cython
+RUN pip3 install -r requirements.txt
+# must be installed after numpy
+RUN pip3 install pycocotools
+
+CMD ["/bin/bash"]
