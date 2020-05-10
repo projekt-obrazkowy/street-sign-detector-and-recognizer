@@ -12,6 +12,7 @@ SCRIPT = "imports/object_detection/export_inference_graph.py"
 
 if __name__ == '__main__':
     indexes = glob.glob(f"{MODEL_DIR}/model.ckpt-*.index")
+    indexes.sort(reverse=True)
     ckpt = indexes[0].replace(".index", "")
 
     shutil.rmtree(OUTPUT_DIR)
