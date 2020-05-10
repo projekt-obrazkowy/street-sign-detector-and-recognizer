@@ -4,6 +4,9 @@ COPY . /app
 
 WORKDIR /app
 
+# gcc is needed for pycocotools
+RUN apt-get update && apt-get install -yq build-essential
+
 # must be installed before pycocotools
 RUN pip3 install Cython
 RUN pip3 install -r requirements.txt
