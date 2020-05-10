@@ -1,5 +1,7 @@
 # street-sign-detector
 
+![](screen.png)
+
 An application using Tensorflow to detect selected street signs on provided images.
 
 Currently detected signs:
