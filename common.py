@@ -33,4 +33,4 @@ CONFIG_FILE = "configs/ssd_inception_v2_coco.config"
 
 OUTPUT_DIR = "models/post-train"
 
-INFERENCE_GRAPH_FILE = 'models/post-train/frozen_inference_graph.pb'
+INFERENCE_GRAPH_FILE = 'models/post-train-v2/frozen_inference_graph.pb'
