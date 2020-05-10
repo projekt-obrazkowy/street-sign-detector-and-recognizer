@@ -1,12 +1,9 @@
 filename,width,height,class,xmin,ymin,xmax,ymax
 3.jpg,620,370,stop_sign,196,40,412,319
 2.jpg,640,360,stop_sign,291,139,428,271
-10.jpg,625,417,stop_sign,108,51,361,303
 4.jpg,1200,600,stop_sign,212,21,733,523
-11.jpg,216,234,stop_sign,34,24,185,198
 9.jpg,612,408,stop_sign,94,113,352,364
 7.jpg,1254,836,stop_sign,704,80,1078,465
 8.jpg,4928,2774,stop_sign,1357,347,3574,2650
 5.jpg,1140,712,stop_sign,660,1,958,322
 6.jpg,222,300,stop_sign,65,38,174,160
-1.jpg,960,640,stop_sign,302,114,860,619
