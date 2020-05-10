@@ -8,3 +8,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Publish
+        if: github.ref == 'refs/heads/master'
+        uses: matootie/github-docker@v2.2.2
+        with:
+          accessToken: ${{github.token}}
+          imageTag: latest
