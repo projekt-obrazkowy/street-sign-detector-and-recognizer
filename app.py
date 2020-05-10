@@ -11,20 +11,16 @@ sys.path.append('imports')
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 
-PATH_TO_INFERENCE_GRAPH = 'models/post-train/frozen_inference_graph.pb'
-PATH_TO_LABELS = 'annotations/label_map.pbtxt'
-NUMBER_OF_MAX_CLASSES = 1
-LINE_THICKNESS = 6
-MIN_DETECTION_SCORE = 0.6
+from common import *
 
-label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
+label_map = label_map_util.load_labelmap(LABELS_MAP_FILE)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUMBER_OF_MAX_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
 detection_graph = tf.Graph()
 with detection_graph.as_default():
     od_graph_def = tf.compat.v1.GraphDef()
-    with tf.io.gfile.GFile(PATH_TO_INFERENCE_GRAPH, 'rb') as fid:
+    with tf.io.gfile.GFile(INFERENCE_GRAPH_FILE, 'rb') as fid:
         serialized_graph = fid.read()
         od_graph_def.ParseFromString(serialized_graph)
         tf.import_graph_def(od_graph_def, name='')

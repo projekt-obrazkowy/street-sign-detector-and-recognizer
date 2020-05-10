@@ -6,10 +6,9 @@ import shutil
 import sys
 import subprocess
 
+from common import *
+
 SCRIPT = "imports/object_detection/export_inference_graph.py"
-MODEL_DIR = "models/train"
-OUTPUT_DIR = "models/post-train"
-CONFIG_FILE = "configs/ssd_inception_v2_coco.config"
 
 if __name__ == '__main__':
     indexes = glob.glob(f"{MODEL_DIR}/model.ckpt-*.index")

@@ -4,9 +4,9 @@ import os
 import sys
 import subprocess
 
+from common import *
+
 SCRIPT = "imports/object_detection/model_main.py"
-MODEL_DIR = "models/train"
-CONFIG_FILE = "configs/ssd_inception_v2_coco.config"
 
 if __name__ == '__main__':
     os.environ["PYTHONPATH"] = f"imports:imports/slim"

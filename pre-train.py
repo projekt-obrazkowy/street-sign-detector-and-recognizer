@@ -22,32 +22,7 @@ from collections import namedtuple, OrderedDict
 from object_detection.protos.string_int_label_map_pb2 import StringIntLabelMap, StringIntLabelMapItem
 from google.protobuf import text_format
 
-
-LABELS = [
-    "stop_sign"
-]
-
-IMAGES_TEST_TO_TRAIN_RATIO = 0.2
-
-LABELS_MAP_FILE = "annotations/label_map.pbtxt"
-LABELS_FILE = "annotations/labels.txt"
-
-CSV_TEST_FILE = "annotations/test_labels.csv"
-CSV_TRAIN_FILE = "annotations/train_labels.csv"
-
-RECORD_TEST_FILE = "annotations/test.record"
-RECORD_TRAIN_FILE = "annotations/train.record"
-
-CSV_TEST_FILE = "annotations/test_labels.csv"
-CSV_TRAIN_FILE = "annotations/train_labels.csv"
-
-IMAGES_DIR = "images"
-IMAGES_TEST_DIR = "images/test"
-IMAGES_TRAIN_DIR = "images/train"
-
-XML_TEST_DIR = "images/test"
-XML_TRAIN_DIR = "images/train"
-
+from common import *
 
 def get_labels_map(classes, start=1):
     msg = StringIntLabelMap()
