@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
+
 import os
 import sys
 import cv2
 import numpy as np
 import tensorflow as tf
 
-sys.path.append('imports/object_detection')
+sys.path.append('imports')
 
-from utils import label_map_util
-from utils import visualization_utils as vis_util
+from object_detection.utils import label_map_util
+from object_detection.utils import visualization_utils as vis_util
 
 PATH_TO_INFERENCE_GRAPH = 'models/post-train/frozen_inference_graph.pb'
 PATH_TO_LABELS = 'annotations/label_map.pbtxt'
