@@ -51,7 +51,6 @@ for path in sys.argv[1:]:
     )
 
     cv2.imshow(path, image)
-    cv2.waitKey(500)
+    cv2.waitKey()
 
-input()
 cv2.destroyAllWindows()
