@@ -1,0 +1,26 @@
+<annotation verified="yes">
+	<folder>images</folder>
+	<filename>15.jpg</filename>
+	<path>/home/dawidd6/github/projekt-obrazkowy/street-sign-detector/images/15.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>800</width>
+		<height>690</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>stop_sign</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>484</xmin>
+			<ymin>41</ymin>
+			<xmax>680</xmax>
+			<ymax>236</ymax>
+		</bndbox>
+	</object>
+</annotation>
