@@ -38,7 +38,7 @@ Launch `app.py` script and pass images which you want to detect street signs on:
 ./app.py *.jpg
 ```
 
-> Press Enter in terminal to close all windows and exit.
+> Keep pressing `Enter` to show next image.
 
 ## Development
 
