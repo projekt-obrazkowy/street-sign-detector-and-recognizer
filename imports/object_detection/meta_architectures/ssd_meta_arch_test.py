@@ -70,7 +70,7 @@ class SsdMetaArchTest(ssd_meta_arch_test_lib.SSDMetaArchTestBase,
                     (None, None, None, 3)]
     model, _, _, _ = self._create_model(use_keras=use_keras)
     for image_shape in image_shapes:
-      image_placeholder = tf.placeholder(tf.float32, shape=image_shape)
+      image_placeholder = tf.compat.v1.placeholder(tf.float32, shape=image_shape)
       preprocessed_inputs, _ = model.preprocess(image_placeholder)
       self.assertAllEqual(preprocessed_inputs.shape.as_list(), image_shape)
 
@@ -94,7 +94,7 @@ class SsdMetaArchTest(ssd_meta_arch_test_lib.SSDMetaArchTestBase,
       with tf_graph.as_default():
         model, num_classes, num_anchors, code_size = self._create_model(
             use_keras=use_keras)
-        preprocessed_input_placeholder = tf.placeholder(tf.float32,
+        preprocessed_input_placeholder = tf.compat.v1.placeholder(tf.float32,
                                                         shape=input_shape)
         prediction_dict = model.predict(
             preprocessed_input_placeholder, true_image_shapes=None)
@@ -104,7 +104,7 @@ class SsdMetaArchTest(ssd_meta_arch_test_lib.SSDMetaArchTestBase,
         self.assertIn('feature_maps', prediction_dict)
         self.assertIn('anchors', prediction_dict)
 
-        init_op = tf.global_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
       with self.test_session(graph=tf_graph) as sess:
         sess.run(init_op)
         prediction_out = sess.run(prediction_dict,
@@ -181,7 +181,7 @@ class SsdMetaArchTest(ssd_meta_arch_test_lib.SSDMetaArchTestBase,
       tf_graph = tf.Graph()
       with tf_graph.as_default():
         model, _, _, _ = self._create_model(use_keras=use_keras)
-        input_placeholder = tf.placeholder(tf.float32, shape=input_shape)
+        input_placeholder = tf.compat.v1.placeholder(tf.float32, shape=input_shape)
         preprocessed_inputs, true_image_shapes = model.preprocess(
             input_placeholder)
         prediction_dict = model.predict(preprocessed_inputs,
@@ -191,7 +191,7 @@ class SsdMetaArchTest(ssd_meta_arch_test_lib.SSDMetaArchTestBase,
         self.assertIn('detection_scores', detections)
         self.assertIn('detection_classes', detections)
         self.assertIn('num_detections', detections)
-        init_op = tf.global_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
       with self.test_session(graph=tf_graph) as sess:
         sess.run(init_op)
         detections_out = sess.run(detections,
@@ -412,8 +412,8 @@ class SsdMetaArchTest(ssd_meta_arch_test_lib.SSDMetaArchTestBase,
     model.predict(tf.constant(np.array([[[[0, 0], [1, 1]], [[1, 0], [0, 1]]]],
                                        dtype=np.float32)),
                   true_image_shapes=None)
-    init_op = tf.global_variables_initializer()
-    saver = tf.train.Saver()
+    init_op = tf.compat.v1.global_variables_initializer()
+    saver = tf.compat.v1.train.Saver()
     save_path = self.get_temp_dir()
     with self.test_session() as sess:
       sess.run(init_op)
@@ -422,30 +422,30 @@ class SsdMetaArchTest(ssd_meta_arch_test_lib.SSDMetaArchTestBase,
           fine_tune_checkpoint_type='detection',
           load_all_detection_checkpoint_vars=False)
       self.assertIsInstance(var_map, dict)
-      saver = tf.train.Saver(var_map)
+      saver = tf.compat.v1.train.Saver(var_map)
       saver.restore(sess, saved_model_path)
-      for var in sess.run(tf.report_uninitialized_variables()):
+      for var in sess.run(tf.compat.v1.report_uninitialized_variables()):
         self.assertNotIn('FeatureExtractor', var)
 
   def test_restore_map_for_classification_ckpt(self, use_keras):
     # Define mock tensorflow classification graph and save variables.
     test_graph_classification = tf.Graph()
     with test_graph_classification.as_default():
-      image = tf.placeholder(dtype=tf.float32, shape=[1, 20, 20, 3])
+      image = tf.compat.v1.placeholder(dtype=tf.float32, shape=[1, 20, 20, 3])
       if use_keras:
-        with tf.name_scope('mock_model'):
+        with tf.compat.v1.name_scope('mock_model'):
           layer_one = keras.Conv2D(32, kernel_size=1, name='layer1')
           net = layer_one(image)
           layer_two = keras.Conv2D(3, kernel_size=1, name='layer2')
           layer_two(net)
       else:
-        with tf.variable_scope('mock_model'):
+        with tf.compat.v1.variable_scope('mock_model'):
           net = slim.conv2d(image, num_outputs=32, kernel_size=1,
                             scope='layer1')
           slim.conv2d(net, num_outputs=3, kernel_size=1, scope='layer2')
 
-      init_op = tf.global_variables_initializer()
-      saver = tf.train.Saver()
+      init_op = tf.compat.v1.global_variables_initializer()
+      saver = tf.compat.v1.train.Saver()
       save_path = self.get_temp_dir()
       with self.test_session(graph=test_graph_classification) as sess:
         sess.run(init_op)
@@ -457,8 +457,8 @@ class SsdMetaArchTest(ssd_meta_arch_test_lib.SSDMetaArchTestBase,
     with test_graph_detection.as_default():
       model, _, _, _ = self._create_model(use_keras=use_keras)
       inputs_shape = [2, 2, 2, 3]
-      inputs = tf.to_float(tf.random_uniform(
-          inputs_shape, minval=0, maxval=255, dtype=tf.int32))
+      inputs = tf.cast(tf.random.uniform(
+          inputs_shape, minval=0, maxval=255, dtype=tf.int32), dtype=tf.float32)
       preprocessed_inputs, true_image_shapes = model.preprocess(inputs)
       prediction_dict = model.predict(preprocessed_inputs, true_image_shapes)
       model.postprocess(prediction_dict, true_image_shapes)
@@ -466,10 +466,10 @@ class SsdMetaArchTest(ssd_meta_arch_test_lib.SSDMetaArchTestBase,
       var_map = model.restore_map(fine_tune_checkpoint_type='classification')
       self.assertNotIn('another_variable', var_map)
       self.assertIsInstance(var_map, dict)
-      saver = tf.train.Saver(var_map)
+      saver = tf.compat.v1.train.Saver(var_map)
       with self.test_session(graph=test_graph_detection) as sess:
         saver.restore(sess, saved_model_path)
-        for var in sess.run(tf.report_uninitialized_variables()):
+        for var in sess.run(tf.compat.v1.report_uninitialized_variables()):
           self.assertNotIn('FeatureExtractor', var)
 
   def test_load_all_det_checkpoint_vars(self, use_keras):
@@ -477,8 +477,8 @@ class SsdMetaArchTest(ssd_meta_arch_test_lib.SSDMetaArchTestBase,
     with test_graph_detection.as_default():
       model, _, _, _ = self._create_model(use_keras=use_keras)
       inputs_shape = [2, 2, 2, 3]
-      inputs = tf.to_float(
-          tf.random_uniform(inputs_shape, minval=0, maxval=255, dtype=tf.int32))
+      inputs = tf.cast(
+          tf.random.uniform(inputs_shape, minval=0, maxval=255, dtype=tf.int32), dtype=tf.float32)
       preprocessed_inputs, true_image_shapes = model.preprocess(inputs)
       prediction_dict = model.predict(preprocessed_inputs, true_image_shapes)
       model.postprocess(prediction_dict, true_image_shapes)

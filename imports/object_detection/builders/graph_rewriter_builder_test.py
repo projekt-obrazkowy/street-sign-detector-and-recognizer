@@ -34,7 +34,7 @@ class QuantizationBuilderTest(tf.test.TestCase):
             graph_rewriter_proto, is_training=True)
         graph_rewrite_fn()
         _, kwargs = mock_quant_fn.call_args
-        self.assertEqual(kwargs['input_graph'], tf.get_default_graph())
+        self.assertEqual(kwargs['input_graph'], tf.compat.v1.get_default_graph())
         self.assertEqual(kwargs['quant_delay'], 10)
         mock_summarize_col.assert_called_with('quant_vars')
 
@@ -49,7 +49,7 @@ class QuantizationBuilderTest(tf.test.TestCase):
             graph_rewriter_proto, is_training=False)
         graph_rewrite_fn()
         _, kwargs = mock_quant_fn.call_args
-        self.assertEqual(kwargs['input_graph'], tf.get_default_graph())
+        self.assertEqual(kwargs['input_graph'], tf.compat.v1.get_default_graph())
         mock_summarize_col.assert_called_with('quant_vars')
 
 

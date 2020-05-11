@@ -36,7 +36,7 @@ class WeightedL2LocalizationLossTest(tf.test.TestCase):
                            [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
                            [1, 1, 1, 1, 1, 0, 0, 0, 0, 0]], tf.float32)
     loss_op = losses.WeightedL2LocalizationLoss()
-    loss = tf.reduce_sum(loss_op(prediction_tensor, target_tensor,
+    loss = tf.reduce_sum(input_tensor=loss_op(prediction_tensor, target_tensor,
                                  weights=weights))
 
     expected_loss = (3 * 5 * 4) / 2.0
@@ -72,7 +72,7 @@ class WeightedL2LocalizationLossTest(tf.test.TestCase):
     loss_op = losses.WeightedL2LocalizationLoss()
     loss = loss_op(prediction_tensor, target_tensor, weights=weights,
                    ignore_nan_targets=True)
-    loss = tf.reduce_sum(loss)
+    loss = tf.reduce_sum(input_tensor=loss)
 
     expected_loss = (3 * 5 * 4) / 2.0
     with self.test_session() as sess:
@@ -91,7 +91,7 @@ class WeightedL2LocalizationLossTest(tf.test.TestCase):
                            [1, 1, 1, 1, 1, 0, 0, 0, 0, 0]], tf.float32)
     losses_mask = tf.constant([True, False, True, True], tf.bool)
     loss_op = losses.WeightedL2LocalizationLoss()
-    loss = tf.reduce_sum(loss_op(prediction_tensor, target_tensor,
+    loss = tf.reduce_sum(input_tensor=loss_op(prediction_tensor, target_tensor,
                                  weights=weights, losses_mask=losses_mask))
 
     expected_loss = (3 * 5 * 4) / 2.0
@@ -117,7 +117,7 @@ class WeightedSmoothL1LocalizationLossTest(tf.test.TestCase):
                            [0, 3, 0]], tf.float32)
     loss_op = losses.WeightedSmoothL1LocalizationLoss()
     loss = loss_op(prediction_tensor, target_tensor, weights=weights)
-    loss = tf.reduce_sum(loss)
+    loss = tf.reduce_sum(input_tensor=loss)
 
     exp_loss = 7.695
     with self.test_session() as sess:
@@ -145,7 +145,7 @@ class WeightedSmoothL1LocalizationLossTest(tf.test.TestCase):
     loss_op = losses.WeightedSmoothL1LocalizationLoss()
     loss = loss_op(prediction_tensor, target_tensor, weights=weights,
                    losses_mask=losses_mask)
-    loss = tf.reduce_sum(loss)
+    loss = tf.reduce_sum(input_tensor=loss)
 
     exp_loss = 7.695
     with self.test_session() as sess:
@@ -165,7 +165,7 @@ class WeightedIOULocalizationLossTest(tf.test.TestCase):
     weights = [[1.0, .5, 2.0]]
     loss_op = losses.WeightedIOULocalizationLoss()
     loss = loss_op(prediction_tensor, target_tensor, weights=weights)
-    loss = tf.reduce_sum(loss)
+    loss = tf.reduce_sum(input_tensor=loss)
     exp_loss = 2.0
     with self.test_session() as sess:
       loss_output = sess.run(loss)
@@ -183,7 +183,7 @@ class WeightedIOULocalizationLossTest(tf.test.TestCase):
     loss_op = losses.WeightedIOULocalizationLoss()
     loss = loss_op(prediction_tensor, target_tensor, weights=weights,
                    losses_mask=losses_mask)
-    loss = tf.reduce_sum(loss)
+    loss = tf.reduce_sum(input_tensor=loss)
     exp_loss = 0.0
     with self.test_session() as sess:
       loss_output = sess.run(loss)
@@ -219,7 +219,7 @@ class WeightedSigmoidClassificationLossTest(tf.test.TestCase):
                             [0, 0, 0]]], tf.float32)
     loss_op = losses.WeightedSigmoidClassificationLoss()
     loss = loss_op(prediction_tensor, target_tensor, weights=weights)
-    loss = tf.reduce_sum(loss)
+    loss = tf.reduce_sum(input_tensor=loss)
 
     exp_loss = -2 * math.log(.5)
     with self.test_session() as sess:
@@ -253,7 +253,7 @@ class WeightedSigmoidClassificationLossTest(tf.test.TestCase):
                             [0, 0, 0]]], tf.float32)
     loss_op = losses.WeightedSigmoidClassificationLoss()
     loss = loss_op(prediction_tensor, target_tensor, weights=weights)
-    loss = tf.reduce_sum(loss, axis=2)
+    loss = tf.reduce_sum(input_tensor=loss, axis=2)
 
     exp_loss = np.matrix([[0, 0, -math.log(.5), 0],
                           [-math.log(.5), 0, 0, 0]])
@@ -291,7 +291,7 @@ class WeightedSigmoidClassificationLossTest(tf.test.TestCase):
     loss_op = losses.WeightedSigmoidClassificationLoss()
     loss = loss_op(prediction_tensor, target_tensor, weights=weights,
                    class_indices=class_indices)
-    loss = tf.reduce_sum(loss, axis=2)
+    loss = tf.reduce_sum(input_tensor=loss, axis=2)
 
     exp_loss = np.matrix([[0, 0, -math.log(.5), 0],
                           [-math.log(.5), 0, 0, 0]])
@@ -341,7 +341,7 @@ class WeightedSigmoidClassificationLossTest(tf.test.TestCase):
     loss_op = losses.WeightedSigmoidClassificationLoss()
     loss_per_anchor = loss_op(prediction_tensor, target_tensor, weights=weights,
                               losses_mask=losses_mask)
-    loss = tf.reduce_sum(loss_per_anchor)
+    loss = tf.reduce_sum(input_tensor=loss_per_anchor)
 
     exp_loss = -2 * math.log(.5)
     with self.test_session() as sess:
@@ -375,9 +375,9 @@ class SigmoidFocalClassificationLossTest(tf.test.TestCase):
     weights = tf.constant([[[1], [1], [1], [1], [1], [1]]], tf.float32)
     focal_loss_op = losses.SigmoidFocalClassificationLoss(gamma=2.0, alpha=None)
     sigmoid_loss_op = losses.WeightedSigmoidClassificationLoss()
-    focal_loss = tf.reduce_sum(focal_loss_op(prediction_tensor, target_tensor,
+    focal_loss = tf.reduce_sum(input_tensor=focal_loss_op(prediction_tensor, target_tensor,
                                              weights=weights), axis=2)
-    sigmoid_loss = tf.reduce_sum(sigmoid_loss_op(prediction_tensor,
+    sigmoid_loss = tf.reduce_sum(input_tensor=sigmoid_loss_op(prediction_tensor,
                                                  target_tensor,
                                                  weights=weights), axis=2)
 
@@ -401,9 +401,9 @@ class SigmoidFocalClassificationLossTest(tf.test.TestCase):
     weights = tf.constant([[[1], [1], [1], [1], [1]]], tf.float32)
     focal_loss_op = losses.SigmoidFocalClassificationLoss(gamma=2.0, alpha=None)
     sigmoid_loss_op = losses.WeightedSigmoidClassificationLoss()
-    focal_loss = tf.reduce_sum(focal_loss_op(prediction_tensor, target_tensor,
+    focal_loss = tf.reduce_sum(input_tensor=focal_loss_op(prediction_tensor, target_tensor,
                                              weights=weights), axis=2)
-    sigmoid_loss = tf.reduce_sum(sigmoid_loss_op(prediction_tensor,
+    sigmoid_loss = tf.reduce_sum(input_tensor=sigmoid_loss_op(prediction_tensor,
                                                  target_tensor,
                                                  weights=weights), axis=2)
 
@@ -427,9 +427,9 @@ class SigmoidFocalClassificationLossTest(tf.test.TestCase):
     weights = tf.constant([[[1], [1], [1], [1], [1]]], tf.float32)
     focal_loss_op = losses.SigmoidFocalClassificationLoss(gamma=2.0, alpha=None)
     sigmoid_loss_op = losses.WeightedSigmoidClassificationLoss()
-    focal_loss = tf.reduce_sum(focal_loss_op(prediction_tensor, target_tensor,
+    focal_loss = tf.reduce_sum(input_tensor=focal_loss_op(prediction_tensor, target_tensor,
                                              weights=weights))
-    sigmoid_loss = tf.reduce_sum(sigmoid_loss_op(prediction_tensor,
+    sigmoid_loss = tf.reduce_sum(input_tensor=sigmoid_loss_op(prediction_tensor,
                                                  target_tensor,
                                                  weights=weights))
 
@@ -453,9 +453,9 @@ class SigmoidFocalClassificationLossTest(tf.test.TestCase):
     weights = tf.constant([[[1], [1], [1], [1], [1]]], tf.float32)
     focal_loss_op = losses.SigmoidFocalClassificationLoss(gamma=2.0, alpha=1.0)
     sigmoid_loss_op = losses.WeightedSigmoidClassificationLoss()
-    focal_loss = tf.reduce_sum(focal_loss_op(prediction_tensor, target_tensor,
+    focal_loss = tf.reduce_sum(input_tensor=focal_loss_op(prediction_tensor, target_tensor,
                                              weights=weights), axis=2)
-    sigmoid_loss = tf.reduce_sum(sigmoid_loss_op(prediction_tensor,
+    sigmoid_loss = tf.reduce_sum(input_tensor=sigmoid_loss_op(prediction_tensor,
                                                  target_tensor,
                                                  weights=weights), axis=2)
 
@@ -481,9 +481,9 @@ class SigmoidFocalClassificationLossTest(tf.test.TestCase):
     weights = tf.constant([[[1], [1], [1], [1], [1]]], tf.float32)
     focal_loss_op = losses.SigmoidFocalClassificationLoss(gamma=2.0, alpha=0.0)
     sigmoid_loss_op = losses.WeightedSigmoidClassificationLoss()
-    focal_loss = tf.reduce_sum(focal_loss_op(prediction_tensor, target_tensor,
+    focal_loss = tf.reduce_sum(input_tensor=focal_loss_op(prediction_tensor, target_tensor,
                                              weights=weights), axis=2)
-    sigmoid_loss = tf.reduce_sum(sigmoid_loss_op(prediction_tensor,
+    sigmoid_loss = tf.reduce_sum(input_tensor=sigmoid_loss_op(prediction_tensor,
                                                  target_tensor,
                                                  weights=weights), axis=2)
 
@@ -595,7 +595,7 @@ class SigmoidFocalClassificationLossTest(tf.test.TestCase):
                             [1, 1, 1]]], tf.float32)
     focal_loss_op = losses.SigmoidFocalClassificationLoss(alpha=1.0, gamma=0.0)
 
-    focal_loss = tf.reduce_sum(focal_loss_op(prediction_tensor, target_tensor,
+    focal_loss = tf.reduce_sum(input_tensor=focal_loss_op(prediction_tensor, target_tensor,
                                              weights=weights))
     with self.test_session() as sess:
       focal_loss = sess.run(focal_loss)
@@ -633,7 +633,7 @@ class SigmoidFocalClassificationLossTest(tf.test.TestCase):
                             [1, 1, 1]]], tf.float32)
     focal_loss_op = losses.SigmoidFocalClassificationLoss(alpha=0.75, gamma=0.0)
 
-    focal_loss = tf.reduce_sum(focal_loss_op(prediction_tensor, target_tensor,
+    focal_loss = tf.reduce_sum(input_tensor=focal_loss_op(prediction_tensor, target_tensor,
                                              weights=weights))
     with self.test_session() as sess:
       focal_loss = sess.run(focal_loss)
@@ -686,7 +686,7 @@ class SigmoidFocalClassificationLossTest(tf.test.TestCase):
     losses_mask = tf.constant([True, True, False], tf.bool)
     focal_loss_op = losses.SigmoidFocalClassificationLoss(alpha=0.75, gamma=0.0)
 
-    focal_loss = tf.reduce_sum(focal_loss_op(prediction_tensor, target_tensor,
+    focal_loss = tf.reduce_sum(input_tensor=focal_loss_op(prediction_tensor, target_tensor,
                                              weights=weights,
                                              losses_mask=losses_mask))
     with self.test_session() as sess:
@@ -729,7 +729,7 @@ class WeightedSoftmaxClassificationLossTest(tf.test.TestCase):
                             [0, 0, 0]]], tf.float32)
     loss_op = losses.WeightedSoftmaxClassificationLoss()
     loss = loss_op(prediction_tensor, target_tensor, weights=weights)
-    loss = tf.reduce_sum(loss)
+    loss = tf.reduce_sum(input_tensor=loss)
 
     exp_loss = - 1.5 * math.log(.5)
     with self.test_session() as sess:
@@ -849,7 +849,7 @@ class WeightedSoftmaxClassificationLossTest(tf.test.TestCase):
     loss_op = losses.WeightedSoftmaxClassificationLoss()
     loss = loss_op(prediction_tensor, target_tensor, weights=weights,
                    losses_mask=losses_mask)
-    loss = tf.reduce_sum(loss)
+    loss = tf.reduce_sum(input_tensor=loss)
 
     exp_loss = - 1.5 * math.log(.5)
     with self.test_session() as sess:
@@ -879,14 +879,14 @@ class WeightedSoftmaxClassificationAgainstLogitsLossTest(tf.test.TestCase):
                                   [100, -100, -100]]], tf.float32)
     weights = tf.constant([[1, 1, .5, 1],
                            [1, 1, 1, 1]], tf.float32)
-    weights_shape = tf.shape(weights)
+    weights_shape = tf.shape(input=weights)
     weights_multiple = tf.concat(
         [tf.ones_like(weights_shape), tf.constant([3])],
         axis=0)
     weights = tf.tile(tf.expand_dims(weights, 2), weights_multiple)
     loss_op = losses.WeightedSoftmaxClassificationAgainstLogitsLoss()
     loss = loss_op(prediction_tensor, target_tensor, weights=weights)
-    loss = tf.reduce_sum(loss)
+    loss = tf.reduce_sum(input_tensor=loss)
 
     exp_loss = - 1.5 * math.log(.5)
     with self.test_session() as sess:
@@ -912,7 +912,7 @@ class WeightedSoftmaxClassificationAgainstLogitsLossTest(tf.test.TestCase):
                                   [100, -100, -100]]], tf.float32)
     weights = tf.constant([[1, 1, .5, 1],
                            [1, 1, 1, 0]], tf.float32)
-    weights_shape = tf.shape(weights)
+    weights_shape = tf.shape(input=weights)
     weights_multiple = tf.concat(
         [tf.ones_like(weights_shape), tf.constant([3])],
         axis=0)
@@ -946,7 +946,7 @@ class WeightedSoftmaxClassificationAgainstLogitsLossTest(tf.test.TestCase):
                                   [100, -100, -100]]], tf.float32)
     weights = tf.constant([[1, 1, .5, 1],
                            [1, 1, 1, 0]], tf.float32)
-    weights_shape = tf.shape(weights)
+    weights_shape = tf.shape(input=weights)
     weights_multiple = tf.concat(
         [tf.ones_like(weights_shape), tf.constant([3])],
         axis=0)
@@ -1008,7 +1008,7 @@ class BootstrappedSigmoidClassificationLossTest(tf.test.TestCase):
     loss_op = losses.BootstrappedSigmoidClassificationLoss(
         alpha, bootstrap_type='soft')
     loss = loss_op(prediction_tensor, target_tensor, weights=weights)
-    loss = tf.reduce_sum(loss)
+    loss = tf.reduce_sum(input_tensor=loss)
     exp_loss = -math.log(.5)
     with self.test_session() as sess:
       loss_output = sess.run(loss)
@@ -1043,7 +1043,7 @@ class BootstrappedSigmoidClassificationLossTest(tf.test.TestCase):
     loss_op = losses.BootstrappedSigmoidClassificationLoss(
         alpha, bootstrap_type='hard')
     loss = loss_op(prediction_tensor, target_tensor, weights=weights)
-    loss = tf.reduce_sum(loss)
+    loss = tf.reduce_sum(input_tensor=loss)
     exp_loss = -math.log(.5)
     with self.test_session() as sess:
       loss_output = sess.run(loss)
@@ -1078,7 +1078,7 @@ class BootstrappedSigmoidClassificationLossTest(tf.test.TestCase):
     loss_op = losses.BootstrappedSigmoidClassificationLoss(
         alpha, bootstrap_type='hard')
     loss = loss_op(prediction_tensor, target_tensor, weights=weights)
-    loss = tf.reduce_sum(loss, axis=2)
+    loss = tf.reduce_sum(input_tensor=loss, axis=2)
     exp_loss = np.matrix([[0, 0, -math.log(.5), 0],
                           [-math.log(.5), 0, 0, 0]])
     with self.test_session() as sess:

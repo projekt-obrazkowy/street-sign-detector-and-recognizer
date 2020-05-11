@@ -39,7 +39,7 @@ def build(optimizer_config):
     config = optimizer_config.rms_prop_optimizer
     learning_rate = _create_learning_rate(config.learning_rate)
     summary_vars.append(learning_rate)
-    optimizer = tf.train.RMSPropOptimizer(
+    optimizer = tf.compat.v1.train.RMSPropOptimizer(
         learning_rate,
         decay=config.decay,
         momentum=config.momentum_optimizer_value,
@@ -49,7 +49,7 @@ def build(optimizer_config):
     config = optimizer_config.momentum_optimizer
     learning_rate = _create_learning_rate(config.learning_rate)
     summary_vars.append(learning_rate)
-    optimizer = tf.train.MomentumOptimizer(
+    optimizer = tf.compat.v1.train.MomentumOptimizer(
         learning_rate,
         momentum=config.momentum_optimizer_value)
 
@@ -57,7 +57,7 @@ def build(optimizer_config):
     config = optimizer_config.adam_optimizer
     learning_rate = _create_learning_rate(config.learning_rate)
     summary_vars.append(learning_rate)
-    optimizer = tf.train.AdamOptimizer(learning_rate)
+    optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate)
 
   if optimizer is None:
     raise ValueError('Optimizer %s not supported.' % optimizer_type)
@@ -91,7 +91,7 @@ def _create_learning_rate(learning_rate_config):
   if learning_rate_type == 'exponential_decay_learning_rate':
     config = learning_rate_config.exponential_decay_learning_rate
     learning_rate = learning_schedules.exponential_decay_with_burnin(
-        tf.train.get_or_create_global_step(),
+        tf.compat.v1.train.get_or_create_global_step(),
         config.initial_learning_rate,
         config.decay_steps,
         config.decay_factor,
@@ -108,13 +108,13 @@ def _create_learning_rate(learning_rate_config):
     learning_rate_sequence = [config.initial_learning_rate]
     learning_rate_sequence += [x.learning_rate for x in config.schedule]
     learning_rate = learning_schedules.manual_stepping(
-        tf.train.get_or_create_global_step(), learning_rate_step_boundaries,
+        tf.compat.v1.train.get_or_create_global_step(), learning_rate_step_boundaries,
         learning_rate_sequence, config.warmup)
 
   if learning_rate_type == 'cosine_decay_learning_rate':
     config = learning_rate_config.cosine_decay_learning_rate
     learning_rate = learning_schedules.cosine_decay_with_warmup(
-        tf.train.get_or_create_global_step(),
+        tf.compat.v1.train.get_or_create_global_step(),
         config.learning_rate_base,
         config.total_steps,
         config.warmup_learning_rate,

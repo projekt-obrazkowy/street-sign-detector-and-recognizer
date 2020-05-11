@@ -36,11 +36,11 @@ FLAGS = tf.flags.FLAGS
 
 def _get_configs_for_model(model_name):
   """Returns configurations for model."""
-  fname = os.path.join(tf.resource_loader.get_data_files_path(),
+  fname = os.path.join(tf.compat.v1.resource_loader.get_data_files_path(),
                        'samples/configs/' + model_name + '.config')
-  label_map_path = os.path.join(tf.resource_loader.get_data_files_path(),
+  label_map_path = os.path.join(tf.compat.v1.resource_loader.get_data_files_path(),
                                 'data/pet_label_map.pbtxt')
-  data_path = os.path.join(tf.resource_loader.get_data_files_path(),
+  data_path = os.path.join(tf.compat.v1.resource_loader.get_data_files_path(),
                            'test_data/pets_examples.record')
   configs = config_util.get_configs_from_pipeline_file(fname)
   override_dict = {
@@ -61,8 +61,8 @@ def _make_initializable_iterator(dataset):
   Returns:
     A `tf.data.Iterator`.
   """
-  iterator = dataset.make_initializable_iterator()
-  tf.add_to_collection(tf.GraphKeys.TABLE_INITIALIZERS, iterator.initializer)
+  iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+  tf.compat.v1.add_to_collection(tf.compat.v1.GraphKeys.TABLE_INITIALIZERS, iterator.initializer)
   return iterator
 
 
@@ -358,7 +358,7 @@ class InputsTest(test_case.TestCase, parameterized.TestCase):
       eval_input_fn()
 
   def test_output_equal_in_replace_empty_string_with_random_number(self):
-    string_placeholder = tf.placeholder(tf.string, shape=[])
+    string_placeholder = tf.compat.v1.placeholder(tf.string, shape=[])
     replaced_string = inputs._replace_empty_string_with_random_number(
         string_placeholder)
 
@@ -372,14 +372,14 @@ class InputsTest(test_case.TestCase, parameterized.TestCase):
 
   def test_output_is_integer_in_replace_empty_string_with_random_number(self):
 
-    string_placeholder = tf.placeholder(tf.string, shape=[])
+    string_placeholder = tf.compat.v1.placeholder(tf.string, shape=[])
     replaced_string = inputs._replace_empty_string_with_random_number(
         string_placeholder)
 
     empty_string = ''
     feed_dict = {string_placeholder: empty_string}
 
-    tf.set_random_seed(0)
+    tf.compat.v1.set_random_seed(0)
 
     with self.test_session() as sess:
       out_string = sess.run(replaced_string, feed_dict=feed_dict)
@@ -533,11 +533,11 @@ class DataAugmentationFnTest(test_case.TestCase):
 
 
 def _fake_model_preprocessor_fn(image):
-  return (image, tf.expand_dims(tf.shape(image)[1:], axis=0))
+  return (image, tf.expand_dims(tf.shape(input=image)[1:], axis=0))
 
 
 def _fake_image_resizer_fn(image, mask):
-  return (image, mask, tf.shape(image))
+  return (image, mask, tf.shape(input=image))
 
 
 class DataTransformationFnTest(test_case.TestCase):
@@ -670,14 +670,14 @@ class DataTransformationFnTest(test_case.TestCase):
     }
 
     def fake_image_resizer_fn(image, masks=None):
-      resized_image = tf.image.resize_images(image, [8, 8])
+      resized_image = tf.image.resize(image, [8, 8])
       results = [resized_image]
       if masks is not None:
         resized_masks = tf.transpose(
-            tf.image.resize_images(tf.transpose(masks, [1, 2, 0]), [8, 8]),
-            [2, 0, 1])
+            a=tf.image.resize(tf.transpose(a=masks, perm=[1, 2, 0]), [8, 8]),
+            perm=[2, 0, 1])
         results.append(resized_masks)
-      results.append(tf.shape(resized_image))
+      results.append(tf.shape(input=resized_image))
       return results
 
     num_classes = 3
@@ -709,7 +709,7 @@ class DataTransformationFnTest(test_case.TestCase):
     }
 
     def fake_model_preprocessor_fn(image):
-      return (image / 255., tf.expand_dims(tf.shape(image)[1:], axis=0))
+      return (image / 255., tf.expand_dims(tf.shape(input=image)[1:], axis=0))
 
     num_classes = 3
     input_transformation_fn = functools.partial(
@@ -766,7 +766,7 @@ class DataTransformationFnTest(test_case.TestCase):
     }
 
     def mul_two_model_preprocessor_fn(image):
-      return (image * 2, tf.expand_dims(tf.shape(image)[1:], axis=0))
+      return (image * 2, tf.expand_dims(tf.shape(input=image)[1:], axis=0))
 
     def add_five_to_image_data_augmentation_fn(tensor_dict):
       tensor_dict[fields.InputDataFields.image] += 5
@@ -792,15 +792,15 @@ class PadInputDataToStaticShapesFnTest(test_case.TestCase):
   def test_pad_images_boxes_and_classes(self):
     input_tensor_dict = {
         fields.InputDataFields.image:
-            tf.placeholder(tf.float32, [None, None, 3]),
+            tf.compat.v1.placeholder(tf.float32, [None, None, 3]),
         fields.InputDataFields.groundtruth_boxes:
-            tf.placeholder(tf.float32, [None, 4]),
+            tf.compat.v1.placeholder(tf.float32, [None, 4]),
         fields.InputDataFields.groundtruth_classes:
-            tf.placeholder(tf.int32, [None, 3]),
+            tf.compat.v1.placeholder(tf.int32, [None, 3]),
         fields.InputDataFields.true_image_shape:
-            tf.placeholder(tf.int32, [3]),
+            tf.compat.v1.placeholder(tf.int32, [3]),
         fields.InputDataFields.original_image_spatial_shape:
-            tf.placeholder(tf.int32, [2])
+            tf.compat.v1.placeholder(tf.int32, [2])
     }
     padded_tensor_dict = inputs.pad_input_data_to_static_shapes(
         tensor_dict=input_tensor_dict,
@@ -827,11 +827,11 @@ class PadInputDataToStaticShapesFnTest(test_case.TestCase):
   def test_clip_boxes_and_classes(self):
     input_tensor_dict = {
         fields.InputDataFields.groundtruth_boxes:
-            tf.placeholder(tf.float32, [None, 4]),
+            tf.compat.v1.placeholder(tf.float32, [None, 4]),
         fields.InputDataFields.groundtruth_classes:
-            tf.placeholder(tf.int32, [None, 3]),
+            tf.compat.v1.placeholder(tf.int32, [None, 3]),
         fields.InputDataFields.num_groundtruth_boxes:
-            tf.placeholder(tf.int32, [])
+            tf.compat.v1.placeholder(tf.int32, [])
     }
     padded_tensor_dict = inputs.pad_input_data_to_static_shapes(
         tensor_dict=input_tensor_dict,
@@ -870,7 +870,7 @@ class PadInputDataToStaticShapesFnTest(test_case.TestCase):
   def test_do_not_pad_dynamic_images(self):
     input_tensor_dict = {
         fields.InputDataFields.image:
-            tf.placeholder(tf.float32, [None, None, 3]),
+            tf.compat.v1.placeholder(tf.float32, [None, None, 3]),
     }
     padded_tensor_dict = inputs.pad_input_data_to_static_shapes(
         tensor_dict=input_tensor_dict,
@@ -885,9 +885,9 @@ class PadInputDataToStaticShapesFnTest(test_case.TestCase):
   def test_images_and_additional_channels(self):
     input_tensor_dict = {
         fields.InputDataFields.image:
-            tf.placeholder(tf.float32, [None, None, 3]),
+            tf.compat.v1.placeholder(tf.float32, [None, None, 3]),
         fields.InputDataFields.image_additional_channels:
-            tf.placeholder(tf.float32, [None, None, 2]),
+            tf.compat.v1.placeholder(tf.float32, [None, None, 2]),
     }
     padded_tensor_dict = inputs.pad_input_data_to_static_shapes(
         tensor_dict=input_tensor_dict,
@@ -905,7 +905,7 @@ class PadInputDataToStaticShapesFnTest(test_case.TestCase):
   def test_gray_images(self):
     input_tensor_dict = {
         fields.InputDataFields.image:
-            tf.placeholder(tf.float32, [None, None, 1]),
+            tf.compat.v1.placeholder(tf.float32, [None, None, 1]),
     }
     padded_tensor_dict = inputs.pad_input_data_to_static_shapes(
         tensor_dict=input_tensor_dict,
@@ -920,9 +920,9 @@ class PadInputDataToStaticShapesFnTest(test_case.TestCase):
   def test_gray_images_and_additional_channels(self):
     input_tensor_dict = {
         fields.InputDataFields.image:
-            tf.placeholder(tf.float32, [None, None, 1]),
+            tf.compat.v1.placeholder(tf.float32, [None, None, 1]),
         fields.InputDataFields.image_additional_channels:
-            tf.placeholder(tf.float32, [None, None, 2]),
+            tf.compat.v1.placeholder(tf.float32, [None, None, 2]),
     }
     padded_tensor_dict = inputs.pad_input_data_to_static_shapes(
         tensor_dict=input_tensor_dict,
@@ -940,9 +940,9 @@ class PadInputDataToStaticShapesFnTest(test_case.TestCase):
   def test_keypoints(self):
     input_tensor_dict = {
         fields.InputDataFields.groundtruth_keypoints:
-            tf.placeholder(tf.float32, [None, 16, 4]),
+            tf.compat.v1.placeholder(tf.float32, [None, 16, 4]),
         fields.InputDataFields.groundtruth_keypoint_visibilities:
-            tf.placeholder(tf.bool, [None, 16]),
+            tf.compat.v1.placeholder(tf.bool, [None, 16]),
     }
     padded_tensor_dict = inputs.pad_input_data_to_static_shapes(
         tensor_dict=input_tensor_dict,

@@ -31,16 +31,16 @@ def build_input(tfrecord_paths):
     image_tensor: The decoded image of the example. Uint8 tensor,
         shape=[1, None, None,3]
   """
-  filename_queue = tf.train.string_input_producer(
+  filename_queue = tf.compat.v1.train.string_input_producer(
       tfrecord_paths, shuffle=False, num_epochs=1)
 
-  tf_record_reader = tf.TFRecordReader()
+  tf_record_reader = tf.compat.v1.TFRecordReader()
   _, serialized_example_tensor = tf_record_reader.read(filename_queue)
-  features = tf.parse_single_example(
-      serialized_example_tensor,
+  features = tf.io.parse_single_example(
+      serialized=serialized_example_tensor,
       features={
           standard_fields.TfExampleFields.image_encoded:
-              tf.FixedLenFeature([], tf.string),
+              tf.io.FixedLenFeature([], tf.string),
       })
   encoded_image = features[standard_fields.TfExampleFields.image_encoded]
   image_tensor = tf.image.decode_image(encoded_image, channels=3)
@@ -65,15 +65,15 @@ def build_inference_graph(image_tensor, inference_graph_path):
     detected_labels_tensor: Detected labels. Int64 tensor,
         shape=[num_detections]
   """
-  with tf.gfile.Open(inference_graph_path, 'r') as graph_def_file:
+  with tf.io.gfile.GFile(inference_graph_path, 'r') as graph_def_file:
     graph_content = graph_def_file.read()
-  graph_def = tf.GraphDef()
+  graph_def = tf.compat.v1.GraphDef()
   graph_def.MergeFromString(graph_content)
 
   tf.import_graph_def(
       graph_def, name='', input_map={'image_tensor': image_tensor})
 
-  g = tf.get_default_graph()
+  g = tf.compat.v1.get_default_graph()
 
   num_detections_tensor = tf.squeeze(
       g.get_tensor_by_name('num_detections:0'), 0)
@@ -114,7 +114,7 @@ def infer_detections_and_add_to_example(
   """
   tf_example = tf.train.Example()
   (serialized_example, detected_boxes, detected_scores,
-   detected_classes) = tf.get_default_session().run([
+   detected_classes) = tf.compat.v1.get_default_session().run([
        serialized_example_tensor, detected_boxes_tensor, detected_scores_tensor,
        detected_labels_tensor
    ])

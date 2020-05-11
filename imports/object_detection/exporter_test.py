@@ -48,7 +48,7 @@ class FakeModel(model.DetectionModel):
     return tf.identity(inputs), true_image_shapes
 
   def predict(self, preprocessed_inputs, true_image_shapes):
-    return {'image': tf.layers.conv2d(preprocessed_inputs, 3, 1)}
+    return {'image': tf.compat.v1.layers.conv2d(preprocessed_inputs, 3, 1)}
 
   def postprocess(self, prediction_dict, true_image_shapes):
     with tf.control_dependencies(prediction_dict.values()):
@@ -94,20 +94,20 @@ class ExportInferenceGraphTest(tf.test.TestCase):
     with g.as_default():
       mock_model = FakeModel()
       preprocessed_inputs, true_image_shapes = mock_model.preprocess(
-          tf.placeholder(tf.float32, shape=[None, None, None, 3]))
+          tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 3]))
       predictions = mock_model.predict(preprocessed_inputs, true_image_shapes)
       mock_model.postprocess(predictions, true_image_shapes)
       if use_moving_averages:
         tf.train.ExponentialMovingAverage(0.0).apply()
-      tf.train.get_or_create_global_step()
+      tf.compat.v1.train.get_or_create_global_step()
       if enable_quantization:
         graph_rewriter_config = graph_rewriter_pb2.GraphRewriter()
         graph_rewriter_config.quantization.delay = 500000
         graph_rewriter_fn = graph_rewriter_builder.build(
             graph_rewriter_config, is_training=False)
         graph_rewriter_fn()
-      saver = tf.train.Saver()
-      init = tf.global_variables_initializer()
+      saver = tf.compat.v1.train.Saver()
+      init = tf.compat.v1.global_variables_initializer()
       with self.test_session() as sess:
         sess.run(init)
         saver.save(sess, checkpoint_path)
@@ -115,8 +115,8 @@ class ExportInferenceGraphTest(tf.test.TestCase):
   def _load_inference_graph(self, inference_graph_path, is_binary=True):
     od_graph = tf.Graph()
     with od_graph.as_default():
-      od_graph_def = tf.GraphDef()
-      with tf.gfile.GFile(inference_graph_path) as fid:
+      od_graph_def = tf.compat.v1.GraphDef()
+      with tf.io.gfile.GFile(inference_graph_path) as fid:
         if is_binary:
           od_graph_def.ParseFromString(fid.read())
         else:
@@ -200,8 +200,8 @@ class ExportInferenceGraphTest(tf.test.TestCase):
 
     with tf.Graph().as_default() as od_graph:
       with self.test_session(graph=od_graph) as sess:
-        meta_graph = tf.saved_model.loader.load(
-            sess, [tf.saved_model.tag_constants.SERVING], saved_model_path)
+        meta_graph = tf.compat.v1.saved_model.loader.load(
+            sess, [tf.saved_model.SERVING], saved_model_path)
         signature = meta_graph.signature_def['serving_default']
         input_tensor_name = signature.inputs['inputs'].name
         image_tensor = od_graph.get_tensor_by_name(input_tensor_name)
@@ -261,7 +261,7 @@ class ExportInferenceGraphTest(tf.test.TestCase):
     with graph.as_default():
       fake_model = FakeModel()
       preprocessed_inputs, true_image_shapes = fake_model.preprocess(
-          tf.placeholder(dtype=tf.float32, shape=[None, None, None, 3]))
+          tf.compat.v1.placeholder(dtype=tf.float32, shape=[None, None, None, 3]))
       predictions = fake_model.predict(preprocessed_inputs, true_image_shapes)
       fake_model.postprocess(predictions, true_image_shapes)
       exporter.replace_variable_values_with_moving_averages(
@@ -335,7 +335,7 @@ class ExportInferenceGraphTest(tf.test.TestCase):
           write_inference_graph=True)
     self._load_inference_graph(inference_graph_path, is_binary=False)
     has_quant_nodes = False
-    for v in tf.global_variables():
+    for v in tf.compat.v1.global_variables():
       if v.op.name.endswith('act_quant/min'):
         has_quant_nodes = True
         break
@@ -603,7 +603,7 @@ class ExportInferenceGraphTest(tf.test.TestCase):
     output_directory = os.path.join(tmp_dir, 'output')
     inference_graph_path = os.path.join(output_directory,
                                         'frozen_inference_graph.pb')
-    tf.gfile.MakeDirs(output_directory)
+    tf.io.gfile.makedirs(output_directory)
     with mock.patch.object(
         model_builder, 'build', autospec=True) as mock_builder:
       mock_builder.return_value = FakeModel(
@@ -619,10 +619,10 @@ class ExportInferenceGraphTest(tf.test.TestCase):
           output_collection_name='inference_op',
           graph_hook_fn=None)
       output_node_names = ','.join(outputs.keys())
-      saver = tf.train.Saver()
+      saver = tf.compat.v1.train.Saver()
       input_saver_def = saver.as_saver_def()
       exporter.freeze_graph_with_def_protos(
-          input_graph_def=tf.get_default_graph().as_graph_def(),
+          input_graph_def=tf.compat.v1.get_default_graph().as_graph_def(),
           input_saver_def=input_saver_def,
           input_checkpoint=trained_checkpoint_prefix,
           output_node_names=output_node_names,
@@ -679,7 +679,7 @@ class ExportInferenceGraphTest(tf.test.TestCase):
       self.assertTrue(os.path.exists(expected_pipeline_path))
 
       written_pipeline_config = pipeline_pb2.TrainEvalPipelineConfig()
-      with tf.gfile.GFile(expected_pipeline_path, 'r') as f:
+      with tf.io.gfile.GFile(expected_pipeline_path, 'r') as f:
         proto_str = f.read()
         text_format.Merge(proto_str, written_pipeline_config)
         self.assertProtoEquals(pipeline_config, written_pipeline_config)
@@ -708,8 +708,8 @@ class ExportInferenceGraphTest(tf.test.TestCase):
         np.ones((4, 4, 3)).astype(np.uint8))] * 2)
     with tf.Graph().as_default() as od_graph:
       with self.test_session(graph=od_graph) as sess:
-        meta_graph = tf.saved_model.loader.load(
-            sess, [tf.saved_model.tag_constants.SERVING], saved_model_path)
+        meta_graph = tf.compat.v1.saved_model.loader.load(
+            sess, [tf.saved_model.SERVING], saved_model_path)
 
         signature = meta_graph.signature_def['serving_default']
         input_tensor_name = signature.inputs['inputs'].name
@@ -751,7 +751,7 @@ class ExportInferenceGraphTest(tf.test.TestCase):
                                           use_moving_averages=False)
     output_directory = os.path.join(tmp_dir, 'output')
     saved_model_path = os.path.join(output_directory, 'saved_model')
-    tf.gfile.MakeDirs(output_directory)
+    tf.io.gfile.makedirs(output_directory)
     with mock.patch.object(
         model_builder, 'build', autospec=True) as mock_builder:
       mock_builder.return_value = FakeModel(
@@ -767,10 +767,10 @@ class ExportInferenceGraphTest(tf.test.TestCase):
           output_collection_name='inference_op',
           graph_hook_fn=None)
       output_node_names = ','.join(outputs.keys())
-      saver = tf.train.Saver()
+      saver = tf.compat.v1.train.Saver()
       input_saver_def = saver.as_saver_def()
       frozen_graph_def = exporter.freeze_graph_with_def_protos(
-          input_graph_def=tf.get_default_graph().as_graph_def(),
+          input_graph_def=tf.compat.v1.get_default_graph().as_graph_def(),
           input_saver_def=input_saver_def,
           input_checkpoint=trained_checkpoint_prefix,
           output_node_names=output_node_names,
@@ -789,8 +789,8 @@ class ExportInferenceGraphTest(tf.test.TestCase):
         np.ones((4, 4, 3)).astype(np.uint8))] * 2)
     with tf.Graph().as_default() as od_graph:
       with self.test_session(graph=od_graph) as sess:
-        meta_graph = tf.saved_model.loader.load(
-            sess, [tf.saved_model.tag_constants.SERVING], saved_model_path)
+        meta_graph = tf.compat.v1.saved_model.loader.load(
+            sess, [tf.saved_model.SERVING], saved_model_path)
 
         signature = meta_graph.signature_def['serving_default']
         input_tensor_name = signature.inputs['inputs'].name
@@ -850,7 +850,7 @@ class ExportInferenceGraphTest(tf.test.TestCase):
         np.ones((4, 4, 3)).astype(np.uint8))] * 2)
     with tf.Graph().as_default() as od_graph:
       with self.test_session(graph=od_graph) as sess:
-        new_saver = tf.train.import_meta_graph(meta_graph_path)
+        new_saver = tf.compat.v1.train.import_meta_graph(meta_graph_path)
         new_saver.restore(sess, model_path)
 
         tf_example = od_graph.get_tensor_by_name('tf_example:0')
@@ -884,7 +884,7 @@ class ExportInferenceGraphTest(tf.test.TestCase):
     output_directory = os.path.join(tmp_dir, 'output')
     model_path = os.path.join(output_directory, 'model.ckpt')
     meta_graph_path = model_path + '.meta'
-    tf.gfile.MakeDirs(output_directory)
+    tf.io.gfile.makedirs(output_directory)
     with mock.patch.object(
         model_builder, 'build', autospec=True) as mock_builder:
       mock_builder.return_value = FakeModel(
@@ -899,10 +899,10 @@ class ExportInferenceGraphTest(tf.test.TestCase):
           input_shape=None,
           output_collection_name='inference_op',
           graph_hook_fn=None)
-      saver = tf.train.Saver()
+      saver = tf.compat.v1.train.Saver()
       input_saver_def = saver.as_saver_def()
       exporter.write_graph_and_checkpoint(
-          inference_graph_def=tf.get_default_graph().as_graph_def(),
+          inference_graph_def=tf.compat.v1.get_default_graph().as_graph_def(),
           model_path=model_path,
           input_saver_def=input_saver_def,
           trained_checkpoint_prefix=trained_checkpoint_prefix)
@@ -911,7 +911,7 @@ class ExportInferenceGraphTest(tf.test.TestCase):
         np.ones((4, 4, 3)).astype(np.uint8))] * 2)
     with tf.Graph().as_default() as od_graph:
       with self.test_session(graph=od_graph) as sess:
-        new_saver = tf.train.import_meta_graph(meta_graph_path)
+        new_saver = tf.compat.v1.train.import_meta_graph(meta_graph_path)
         new_saver.restore(sess, model_path)
 
         tf_example = od_graph.get_tensor_by_name('tf_example:0')

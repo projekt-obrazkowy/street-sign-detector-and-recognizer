@@ -56,13 +56,13 @@ class FakeFasterRCNNFeatureExtractor(
     return tf.identity(resized_inputs)
 
   def _extract_proposal_features(self, preprocessed_inputs, scope):
-    with tf.variable_scope('mock_model'):
+    with tf.compat.v1.variable_scope('mock_model'):
       proposal_features = 0 * slim.conv2d(
           preprocessed_inputs, num_outputs=3, kernel_size=1, scope='layer1')
       return proposal_features, {}
 
   def _extract_box_classifier_features(self, proposal_feature_maps, scope):
-    with tf.variable_scope('mock_model'):
+    with tf.compat.v1.variable_scope('mock_model'):
       return 0 * slim.conv2d(proposal_feature_maps,
                              num_outputs=3, kernel_size=1, scope='layer2')
 
@@ -179,14 +179,14 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
       if masks is not None:
         resized_masks = tf.identity(masks)
         if pad_to_max_dimension is not None:
-          resized_masks = tf.image.pad_to_bounding_box(tf.transpose(masks,
-                                                                    [1, 2, 0]),
+          resized_masks = tf.image.pad_to_bounding_box(tf.transpose(a=masks,
+                                                                    perm=[1, 2, 0]),
                                                        0, 0,
                                                        pad_to_max_dimension,
                                                        pad_to_max_dimension)
-          resized_masks = tf.transpose(resized_masks, [2, 0, 1])
+          resized_masks = tf.transpose(a=resized_masks, perm=[2, 0, 1])
         resized_inputs.append(resized_masks)
-      resized_inputs.append(tf.shape(image))
+      resized_inputs.append(tf.shape(input=image))
       return resized_inputs
 
     # anchors in this test are designed so that a subset of anchors are inside
@@ -413,7 +413,7 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
       width = 12
       input_image_shape = (batch_size, height, width, 3)
       _, true_image_shapes = model.preprocess(tf.zeros(input_image_shape))
-      preprocessed_inputs = tf.placeholder(
+      preprocessed_inputs = tf.compat.v1.placeholder(
           dtype=tf.float32, shape=(batch_size, None, None, 3))
       prediction_dict = model.predict(preprocessed_inputs, true_image_shapes)
 
@@ -426,7 +426,7 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
       # a strict upper bound on the number of anchors.
       num_anchors_strict_upper_bound = height * width * 3 * 3
 
-      init_op = tf.global_variables_initializer()
+      init_op = tf.compat.v1.global_variables_initializer()
       with self.test_session(graph=test_graph) as sess:
         sess.run(init_op)
         prediction_out = sess.run(prediction_dict,
@@ -563,11 +563,11 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
               number_of_stages=2,
               second_stage_batch_size=2,
               predict_masks=False)
-          preprocessed_inputs = tf.placeholder(tf.float32, shape=input_shape)
+          preprocessed_inputs = tf.compat.v1.placeholder(tf.float32, shape=input_shape)
           _, true_image_shapes = model.preprocess(preprocessed_inputs)
           result_tensor_dict = model.predict(
               preprocessed_inputs, true_image_shapes)
-          init_op = tf.global_variables_initializer()
+          init_op = tf.compat.v1.global_variables_initializer()
         with self.test_session(graph=test_graph) as sess:
           sess.run(init_op)
           tensor_dict_out = sess.run(result_tensor_dict, feed_dict={
@@ -906,7 +906,7 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
     for image_shape in image_shapes:
       model = self._build_model(
           is_training=False, number_of_stages=2, second_stage_batch_size=6)
-      image_placeholder = tf.placeholder(tf.float32, shape=image_shape)
+      image_placeholder = tf.compat.v1.placeholder(tf.float32, shape=image_shape)
       preprocessed_inputs, _ = model.preprocess(image_placeholder)
       self.assertAllEqual(preprocessed_inputs.shape.as_list(), image_shape)
 
@@ -1041,9 +1041,9 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
     # proposal. Thus, if mask_predictions_logits element values are all greater
     # than 20, the loss should be zero.
     groundtruth_masks_list = [
-        tf.convert_to_tensor(np.ones((2, 32, 32)), dtype=tf.float32),
-        tf.convert_to_tensor(np.ones((2, 32, 32)), dtype=tf.float32),
-        tf.convert_to_tensor(np.ones((2, 32, 32)), dtype=tf.float32)
+        tf.convert_to_tensor(value=np.ones((2, 32, 32)), dtype=tf.float32),
+        tf.convert_to_tensor(value=np.ones((2, 32, 32)), dtype=tf.float32),
+        tf.convert_to_tensor(value=np.ones((2, 32, 32)), dtype=tf.float32)
     ]
     groundtruth_weights_list = [
         tf.constant([1, 1], dtype=tf.float32),
@@ -1139,7 +1139,7 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
     # crops of the groundtruth masks should return a mask that covers the entire
     # proposal. Thus, if mask_predictions_logits element values are all greater
     # than 20, the loss should be zero.
-    groundtruth_masks_list = [tf.convert_to_tensor(np.ones((1, 32, 32)),
+    groundtruth_masks_list = [tf.convert_to_tensor(value=np.ones((1, 32, 32)),
                                                    dtype=tf.float32)]
 
     prediction_dict = {
@@ -1237,7 +1237,7 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
     # crops of the groundtruth masks should return a mask that covers the entire
     # proposal. Thus, if mask_predictions_logits element values are all greater
     # than 20, the loss should be zero.
-    groundtruth_masks_list = [tf.convert_to_tensor(np.ones((1, 32, 32)),
+    groundtruth_masks_list = [tf.convert_to_tensor(value=np.ones((1, 32, 32)),
                                                    dtype=tf.float32)]
 
     prediction_dict = {
@@ -1293,7 +1293,7 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
           'rpn_box_encodings': rpn_box_encodings,
           'rpn_objectness_predictions_with_background':
           rpn_objectness_predictions_with_background,
-          'image_shape': tf.shape(images),
+          'image_shape': tf.shape(input=images),
           'anchors': anchors,
           'refined_box_encodings': refined_box_encodings,
           'class_predictions_with_background':
@@ -1602,13 +1602,13 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
     # Define mock tensorflow classification graph and save variables.
     test_graph_classification = tf.Graph()
     with test_graph_classification.as_default():
-      image = tf.placeholder(dtype=tf.float32, shape=[1, 20, 20, 3])
-      with tf.variable_scope('mock_model'):
+      image = tf.compat.v1.placeholder(dtype=tf.float32, shape=[1, 20, 20, 3])
+      with tf.compat.v1.variable_scope('mock_model'):
         net = slim.conv2d(image, num_outputs=3, kernel_size=1, scope='layer1')
         slim.conv2d(net, num_outputs=3, kernel_size=1, scope='layer2')
 
-      init_op = tf.global_variables_initializer()
-      saver = tf.train.Saver()
+      init_op = tf.compat.v1.global_variables_initializer()
+      saver = tf.compat.v1.train.Saver()
       save_path = self.get_temp_dir()
       with self.test_session(graph=test_graph_classification) as sess:
         sess.run(init_op)
@@ -1622,17 +1622,17 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
           is_training=False, number_of_stages=2, second_stage_batch_size=6)
 
       inputs_shape = (2, 20, 20, 3)
-      inputs = tf.to_float(tf.random_uniform(
-          inputs_shape, minval=0, maxval=255, dtype=tf.int32))
+      inputs = tf.cast(tf.random.uniform(
+          inputs_shape, minval=0, maxval=255, dtype=tf.int32), dtype=tf.float32)
       preprocessed_inputs, true_image_shapes = model.preprocess(inputs)
       prediction_dict = model.predict(preprocessed_inputs, true_image_shapes)
       model.postprocess(prediction_dict, true_image_shapes)
       var_map = model.restore_map(fine_tune_checkpoint_type='classification')
       self.assertIsInstance(var_map, dict)
-      saver = tf.train.Saver(var_map)
+      saver = tf.compat.v1.train.Saver(var_map)
       with self.test_session(graph=test_graph_classification) as sess:
         saver.restore(sess, saved_model_path)
-        for var in sess.run(tf.report_uninitialized_variables()):
+        for var in sess.run(tf.compat.v1.report_uninitialized_variables()):
           self.assertNotIn(model.first_stage_feature_extractor_scope, var)
           self.assertNotIn(model.second_stage_feature_extractor_scope, var)
 
@@ -1643,14 +1643,14 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
       model = self._build_model(
           is_training=False, number_of_stages=2, second_stage_batch_size=6)
       inputs_shape = (2, 20, 20, 3)
-      inputs = tf.to_float(tf.random_uniform(
-          inputs_shape, minval=0, maxval=255, dtype=tf.int32))
+      inputs = tf.cast(tf.random.uniform(
+          inputs_shape, minval=0, maxval=255, dtype=tf.int32), dtype=tf.float32)
       preprocessed_inputs, true_image_shapes = model.preprocess(inputs)
       prediction_dict = model.predict(preprocessed_inputs, true_image_shapes)
       model.postprocess(prediction_dict, true_image_shapes)
       another_variable = tf.Variable([17.0], name='another_variable')  # pylint: disable=unused-variable
-      init_op = tf.global_variables_initializer()
-      saver = tf.train.Saver()
+      init_op = tf.compat.v1.global_variables_initializer()
+      saver = tf.compat.v1.train.Saver()
       save_path = self.get_temp_dir()
       with self.test_session(graph=test_graph_detection1) as sess:
         sess.run(init_op)
@@ -1663,18 +1663,18 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
                                  second_stage_batch_size=6, num_classes=42)
 
       inputs_shape2 = (2, 20, 20, 3)
-      inputs2 = tf.to_float(tf.random_uniform(
-          inputs_shape2, minval=0, maxval=255, dtype=tf.int32))
+      inputs2 = tf.cast(tf.random.uniform(
+          inputs_shape2, minval=0, maxval=255, dtype=tf.int32), dtype=tf.float32)
       preprocessed_inputs2, true_image_shapes = model2.preprocess(inputs2)
       prediction_dict2 = model2.predict(preprocessed_inputs2, true_image_shapes)
       model2.postprocess(prediction_dict2, true_image_shapes)
       another_variable = tf.Variable([17.0], name='another_variable')  # pylint: disable=unused-variable
       var_map = model2.restore_map(fine_tune_checkpoint_type='detection')
       self.assertIsInstance(var_map, dict)
-      saver = tf.train.Saver(var_map)
+      saver = tf.compat.v1.train.Saver(var_map)
       with self.test_session(graph=test_graph_detection2) as sess:
         saver.restore(sess, saved_model_path)
-        uninitialized_vars_list = sess.run(tf.report_uninitialized_variables())
+        uninitialized_vars_list = sess.run(tf.compat.v1.report_uninitialized_variables())
         self.assertIn('another_variable', uninitialized_vars_list)
         for var in uninitialized_vars_list:
           self.assertNotIn(model2.first_stage_feature_extractor_scope, var)
@@ -1690,8 +1690,8 @@ class FasterRCNNMetaArchTestBase(test_case.TestCase, parameterized.TestCase):
           num_classes=42)
 
       inputs_shape = (2, 20, 20, 3)
-      inputs = tf.to_float(
-          tf.random_uniform(inputs_shape, minval=0, maxval=255, dtype=tf.int32))
+      inputs = tf.cast(
+          tf.random.uniform(inputs_shape, minval=0, maxval=255, dtype=tf.int32), dtype=tf.float32)
       preprocessed_inputs, true_image_shapes = model.preprocess(inputs)
       prediction_dict = model.predict(preprocessed_inputs, true_image_shapes)
       model.postprocess(prediction_dict, true_image_shapes)

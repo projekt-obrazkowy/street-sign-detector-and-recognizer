@@ -174,11 +174,11 @@ class FasterRCNNMetaArchTest(
             second_stage_batch_size=2,
             predict_masks=True,
             masks_are_class_agnostic=masks_are_class_agnostic)
-        preprocessed_inputs = tf.placeholder(tf.float32, shape=input_shape)
+        preprocessed_inputs = tf.compat.v1.placeholder(tf.float32, shape=input_shape)
         _, true_image_shapes = model.preprocess(preprocessed_inputs)
         result_tensor_dict = model.predict(preprocessed_inputs,
                                            true_image_shapes)
-        init_op = tf.global_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
       with self.test_session(graph=test_graph) as sess:
         sess.run(init_op)
         tensor_dict_out = sess.run(result_tensor_dict, feed_dict={
@@ -260,7 +260,7 @@ class FasterRCNNMetaArchTest(
           'mask_predictions': (2 * max_num_proposals, mask_shape_1, 14, 14)
       }
 
-      init_op = tf.global_variables_initializer()
+      init_op = tf.compat.v1.global_variables_initializer()
       with self.test_session(graph=test_graph) as sess:
         sess.run(init_op)
         tensor_dict_out = sess.run(result_tensor_dict)
@@ -318,15 +318,15 @@ class FasterRCNNMetaArchTest(
         class_predictions_with_background = np.ones(
             [total_num_padded_proposals, model.num_classes+1])
 
-        num_proposals_placeholder = tf.placeholder(tf.int32,
+        num_proposals_placeholder = tf.compat.v1.placeholder(tf.int32,
                                                    shape=num_proposals_shape)
-        refined_box_encodings_placeholder = tf.placeholder(
+        refined_box_encodings_placeholder = tf.compat.v1.placeholder(
             tf.float32, shape=refined_box_encoding_shape)
-        class_predictions_with_background_placeholder = tf.placeholder(
+        class_predictions_with_background_placeholder = tf.compat.v1.placeholder(
             tf.float32, shape=class_predictions_with_background_shape)
-        proposal_boxes_placeholder = tf.placeholder(
+        proposal_boxes_placeholder = tf.compat.v1.placeholder(
             tf.float32, shape=proposal_boxes_shape)
-        image_shape_placeholder = tf.placeholder(tf.int32, shape=(4))
+        image_shape_placeholder = tf.compat.v1.placeholder(tf.int32, shape=(4))
         _, true_image_shapes = model.preprocess(
             tf.zeros(image_shape_placeholder))
         detections = model.postprocess({

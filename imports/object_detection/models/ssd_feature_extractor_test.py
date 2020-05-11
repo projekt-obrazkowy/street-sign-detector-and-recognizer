@@ -113,7 +113,7 @@ class SsdFeatureExtractorTestBase(test_case.TestCase):
       pad_to_multiple, expected_feature_map_shapes, use_explicit_padding=False,
       use_keras=False):
     def graph_fn(image_height, image_width):
-      image_tensor = tf.random_uniform([batch_size, image_height, image_width,
+      image_tensor = tf.random.uniform([batch_size, image_height, image_width,
                                         3], dtype=tf.float32)
       return self._extract_features(image_tensor,
                                     depth_multiplier,
@@ -132,14 +132,14 @@ class SsdFeatureExtractorTestBase(test_case.TestCase):
   def check_extract_features_raises_error_with_invalid_image_size(
       self, image_height, image_width, depth_multiplier, pad_to_multiple,
       use_keras=False):
-    preprocessed_inputs = tf.placeholder(tf.float32, (4, None, None, 3))
+    preprocessed_inputs = tf.compat.v1.placeholder(tf.float32, (4, None, None, 3))
     feature_maps = self._extract_features(preprocessed_inputs,
                                           depth_multiplier,
                                           pad_to_multiple,
                                           use_keras=use_keras)
     test_preprocessed_image = np.random.rand(4, image_height, image_width, 3)
     with self.test_session() as sess:
-      sess.run(tf.global_variables_initializer())
+      sess.run(tf.compat.v1.global_variables_initializer())
       with self.assertRaises(tf.errors.InvalidArgumentError):
         sess.run(feature_maps,
                  feed_dict={preprocessed_inputs: test_preprocessed_image})
@@ -155,9 +155,9 @@ class SsdFeatureExtractorTestBase(test_case.TestCase):
       self, depth_multiplier, pad_to_multiple, use_keras=False):
     g = tf.Graph()
     with g.as_default():
-      preprocessed_inputs = tf.placeholder(tf.float32, (4, None, None, 3))
+      preprocessed_inputs = tf.compat.v1.placeholder(tf.float32, (4, None, None, 3))
       self._extract_features(preprocessed_inputs,
                              depth_multiplier,
                              pad_to_multiple,
                              use_keras=use_keras)
-      return g.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
+      return g.get_collection(tf.compat.v1.GraphKeys.GLOBAL_VARIABLES)

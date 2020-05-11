@@ -49,7 +49,7 @@ class FakeSSDFeatureExtractor(ssd_meta_arch.SSDFeatureExtractor):
     return tf.identity(resized_inputs)
 
   def extract_features(self, preprocessed_inputs):
-    with tf.variable_scope('mock_model'):
+    with tf.compat.v1.variable_scope('mock_model'):
       features = slim.conv2d(
           inputs=preprocessed_inputs,
           num_outputs=32,
@@ -62,7 +62,7 @@ class FakeSSDKerasFeatureExtractor(ssd_meta_arch.SSDKerasFeatureExtractor):
   """Fake keras based ssd feature extracture for ssd meta arch tests."""
 
   def __init__(self):
-    with tf.name_scope('mock_model'):
+    with tf.compat.v1.name_scope('mock_model'):
       super(FakeSSDKerasFeatureExtractor, self).__init__(
           is_training=True,
           depth_multiplier=0,
@@ -79,7 +79,7 @@ class FakeSSDKerasFeatureExtractor(ssd_meta_arch.SSDKerasFeatureExtractor):
     return tf.identity(resized_inputs)
 
   def _extract_features(self, preprocessed_inputs, **kwargs):
-    with tf.name_scope('mock_model'):
+    with tf.compat.v1.name_scope('mock_model'):
       return [self._conv(preprocessed_inputs)]
 
 
@@ -145,7 +145,7 @@ class SSDMetaArchTestBase(test_case.TestCase):
     encode_background_as_zeros = False
 
     def image_resizer_fn(image):
-      return [tf.identity(image), tf.shape(image)]
+      return [tf.identity(image), tf.shape(input=image)]
 
     classification_loss = losses.WeightedSigmoidClassificationLoss()
     localization_loss = losses.WeightedSmoothL1LocalizationLoss()

@@ -49,7 +49,7 @@ def get_const_center_size_encoded_anchors(anchors):
   y, x, h, w = anchor_boxlist.get_center_coordinates_and_sizes()
   num_anchors = y.get_shape().as_list()
 
-  with tf.Session() as sess:
+  with tf.compat.v1.Session() as sess:
     y_out, x_out, h_out, w_out = sess.run([y, x, h, w])
   encoded_anchors = tf.constant(
       np.transpose(np.stack((y_out, x_out, h_out, w_out))),
@@ -179,7 +179,7 @@ def export_tflite_graph(pipeline_config,
     ValueError: if the pipeline config contains models other than ssd or uses an
       fixed_shape_resizer and provides a shape as well.
   """
-  tf.gfile.MakeDirs(output_dir)
+  tf.io.gfile.makedirs(output_dir)
   if pipeline_config.model.WhichOneof('model') != 'ssd':
     raise ValueError('Only ssd models are supported in tflite. '
                      'Found {} in config'.format(
@@ -223,7 +223,7 @@ def export_tflite_graph(pipeline_config,
         'is supported with tflite. Found {}'.format(
             image_resizer_config.WhichOneof('image_resizer_oneof')))
 
-  image = tf.placeholder(
+  image = tf.compat.v1.placeholder(
       tf.float32, shape=shape, name='normalized_input_image_tensor')
 
   detection_model = model_builder.build(
@@ -235,7 +235,7 @@ def export_tflite_graph(pipeline_config,
   class_predictions = score_conversion_fn(
       predicted_tensors['class_predictions_with_background'])
 
-  with tf.name_scope('raw_outputs'):
+  with tf.compat.v1.name_scope('raw_outputs'):
     # 'raw_outputs/box_encodings': a float32 tensor of shape [1, num_anchors, 4]
     #  containing the encoded box predictions. Note that these are raw
     #  predictions and no Non-Max suppression is applied on them and
@@ -253,7 +253,7 @@ def export_tflite_graph(pipeline_config,
 
   # Add global step to the graph, so we know the training step number when we
   # evaluate the model.
-  tf.train.get_or_create_global_step()
+  tf.compat.v1.train.get_or_create_global_step()
 
   # graph rewriter
   is_quantized = pipeline_config.HasField('graph_rewriter')
@@ -272,16 +272,16 @@ def export_tflite_graph(pipeline_config,
     saver_kwargs['write_version'] = saver_pb2.SaverDef.V1
     moving_average_checkpoint = tempfile.NamedTemporaryFile()
     exporter.replace_variable_values_with_moving_averages(
-        tf.get_default_graph(), trained_checkpoint_prefix,
+        tf.compat.v1.get_default_graph(), trained_checkpoint_prefix,
         moving_average_checkpoint.name)
     checkpoint_to_use = moving_average_checkpoint.name
   else:
     checkpoint_to_use = trained_checkpoint_prefix
 
-  saver = tf.train.Saver(**saver_kwargs)
+  saver = tf.compat.v1.train.Saver(**saver_kwargs)
   input_saver_def = saver.as_saver_def()
   frozen_graph_def = exporter.freeze_graph_with_def_protos(
-      input_graph_def=tf.get_default_graph().as_graph_def(),
+      input_graph_def=tf.compat.v1.get_default_graph().as_graph_def(),
       input_saver_def=input_saver_def,
       input_checkpoint=checkpoint_to_use,
       output_node_names=','.join([
@@ -305,8 +305,8 @@ def export_tflite_graph(pipeline_config,
     transformed_graph_def = frozen_graph_def
 
   binary_graph = os.path.join(output_dir, 'tflite_graph.pb')
-  with tf.gfile.GFile(binary_graph, 'wb') as f:
+  with tf.io.gfile.GFile(binary_graph, 'wb') as f:
     f.write(transformed_graph_def.SerializeToString())
   txt_graph = os.path.join(output_dir, 'tflite_graph.pbtxt')
-  with tf.gfile.GFile(txt_graph, 'w') as f:
+  with tf.io.gfile.GFile(txt_graph, 'w') as f:
     f.write(str(transformed_graph_def))

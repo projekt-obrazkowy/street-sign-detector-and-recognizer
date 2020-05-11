@@ -66,14 +66,14 @@ def rewrite_nn_resize_op(is_quantized=False):
       'Add', inputs=[reshape_2_pattern, '*'], ordered_inputs=False)
 
   matcher = graph_matcher.GraphMatcher(add_pattern)
-  for match in matcher.match_graph(tf.get_default_graph()):
+  for match in matcher.match_graph(tf.compat.v1.get_default_graph()):
     projection_op = match.get_op(input_pattern)
     reshape_2_op = match.get_op(reshape_2_pattern)
     add_op = match.get_op(add_pattern)
-    nn_resize = tf.image.resize_nearest_neighbor(
+    nn_resize = tf.image.resize(
         projection_op.outputs[0],
         add_op.outputs[0].shape.dims[1:3],
-        align_corners=False)
+        method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
     for index, op_input in enumerate(add_op.inputs):
       if op_input == reshape_2_op.outputs[0]:
@@ -99,10 +99,10 @@ def replace_variable_values_with_moving_averages(graph,
   with graph.as_default():
     variable_averages = tf.train.ExponentialMovingAverage(0.0)
     ema_variables_to_restore = variable_averages.variables_to_restore()
-    with tf.Session() as sess:
-      read_saver = tf.train.Saver(ema_variables_to_restore)
+    with tf.compat.v1.Session() as sess:
+      read_saver = tf.compat.v1.train.Saver(ema_variables_to_restore)
       read_saver.restore(sess, current_checkpoint_file)
-      write_saver = tf.train.Saver()
+      write_saver = tf.compat.v1.train.Saver()
       write_saver.save(sess, new_checkpoint_file)
 
 
@@ -110,7 +110,7 @@ def _image_tensor_input_placeholder(input_shape=None):
   """Returns input placeholder and a 4-D uint8 image tensor."""
   if input_shape is None:
     input_shape = (None, None, None, 3)
-  input_tensor = tf.placeholder(
+  input_tensor = tf.compat.v1.placeholder(
       dtype=tf.uint8, shape=input_shape, name='image_tensor')
   return input_tensor, input_tensor
 
@@ -121,7 +121,7 @@ def _tf_example_input_placeholder():
   Returns:
     a tuple of input placeholder and the output decoded images.
   """
-  batch_tf_example_placeholder = tf.placeholder(
+  batch_tf_example_placeholder = tf.compat.v1.placeholder(
       tf.string, shape=[None], name='tf_example')
   def decode(tf_example_string_tensor):
     tensor_dict = tf_example_decoder.TfExampleDecoder().decode(
@@ -143,7 +143,7 @@ def _encoded_image_string_tensor_input_placeholder():
   Returns:
     a tuple of input placeholder and the output decoded images.
   """
-  batch_image_str_placeholder = tf.placeholder(
+  batch_image_str_placeholder = tf.compat.v1.placeholder(
       dtype=tf.string,
       shape=[None],
       name='encoded_image_string_tensor')
@@ -228,7 +228,7 @@ def add_output_tensor_nodes(postprocessed_tensors,
     outputs[detection_fields.detection_masks] = tf.identity(
         masks, name=detection_fields.detection_masks)
   for output_key in outputs:
-    tf.add_to_collection(output_collection_name, outputs[output_key])
+    tf.compat.v1.add_to_collection(output_collection_name, outputs[output_key])
 
   return outputs
 
@@ -256,22 +256,22 @@ def write_saved_model(saved_model_path,
 
       tf.import_graph_def(frozen_graph_def, name='')
 
-      builder = tf.saved_model.builder.SavedModelBuilder(saved_model_path)
+      builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(saved_model_path)
 
       tensor_info_inputs = {
-          'inputs': tf.saved_model.utils.build_tensor_info(inputs)}
+          'inputs': tf.compat.v1.saved_model.utils.build_tensor_info(inputs)}
       tensor_info_outputs = {}
       for k, v in outputs.items():
-        tensor_info_outputs[k] = tf.saved_model.utils.build_tensor_info(v)
+        tensor_info_outputs[k] = tf.compat.v1.saved_model.utils.build_tensor_info(v)
 
       detection_signature = (
-          tf.saved_model.signature_def_utils.build_signature_def(
+          tf.compat.v1.saved_model.signature_def_utils.build_signature_def(
               inputs=tensor_info_inputs,
               outputs=tensor_info_outputs,
               method_name=signature_constants.PREDICT_METHOD_NAME))
 
       builder.add_meta_graph_and_variables(
-          sess, [tf.saved_model.tag_constants.SERVING],
+          sess, [tf.saved_model.SERVING],
           signature_def_map={
               signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY:
                   detection_signature,
@@ -298,7 +298,7 @@ def write_graph_and_checkpoint(inference_graph_def,
 
 def _get_outputs_from_inputs(input_tensors, detection_model,
                              output_collection_name):
-  inputs = tf.to_float(input_tensors)
+  inputs = tf.cast(input_tensors, dtype=tf.float32)
   preprocessed_inputs, true_image_shapes = detection_model.preprocess(inputs)
   output_tensors = detection_model.predict(
       preprocessed_inputs, true_image_shapes)
@@ -345,7 +345,7 @@ def _export_inference_graph(input_type,
                             graph_hook_fn=None,
                             write_inference_graph=False):
   """Export helper."""
-  tf.gfile.MakeDirs(output_directory)
+  tf.io.gfile.makedirs(output_directory)
   frozen_graph_path = os.path.join(output_directory,
                                    'frozen_inference_graph.pb')
   saved_model_path = os.path.join(output_directory, 'saved_model')
@@ -358,7 +358,7 @@ def _export_inference_graph(input_type,
       output_collection_name=output_collection_name,
       graph_hook_fn=graph_hook_fn)
 
-  profile_inference_graph(tf.get_default_graph())
+  profile_inference_graph(tf.compat.v1.get_default_graph())
   saver_kwargs = {}
   if use_moving_averages:
     # This check is to be compatible with both version of SaverDef.
@@ -368,22 +368,22 @@ def _export_inference_graph(input_type,
     else:
       temp_checkpoint_prefix = tempfile.mkdtemp()
     replace_variable_values_with_moving_averages(
-        tf.get_default_graph(), trained_checkpoint_prefix,
+        tf.compat.v1.get_default_graph(), trained_checkpoint_prefix,
         temp_checkpoint_prefix)
     checkpoint_to_use = temp_checkpoint_prefix
   else:
     checkpoint_to_use = trained_checkpoint_prefix
 
-  saver = tf.train.Saver(**saver_kwargs)
+  saver = tf.compat.v1.train.Saver(**saver_kwargs)
   input_saver_def = saver.as_saver_def()
 
   write_graph_and_checkpoint(
-      inference_graph_def=tf.get_default_graph().as_graph_def(),
+      inference_graph_def=tf.compat.v1.get_default_graph().as_graph_def(),
       model_path=model_path,
       input_saver_def=input_saver_def,
       trained_checkpoint_prefix=checkpoint_to_use)
   if write_inference_graph:
-    inference_graph_def = tf.get_default_graph().as_graph_def()
+    inference_graph_def = tf.compat.v1.get_default_graph().as_graph_def()
     inference_graph_path = os.path.join(output_directory,
                                         'inference_graph.pbtxt')
     for node in inference_graph_def.node:
@@ -397,7 +397,7 @@ def _export_inference_graph(input_type,
     output_node_names = ','.join(outputs.keys())
 
   frozen_graph_def = freeze_graph.freeze_graph_with_def_protos(
-      input_graph_def=tf.get_default_graph().as_graph_def(),
+      input_graph_def=tf.compat.v1.get_default_graph().as_graph_def(),
       input_saver_def=input_saver_def,
       input_checkpoint=checkpoint_to_use,
       output_node_names=output_node_names,

@@ -192,7 +192,7 @@ def build(preprocessor_step_config):
     pad_color = config.pad_color or None
     if pad_color:
       if len(pad_color) == 3:
-        pad_color = tf.to_float([x for x in config.pad_color])
+        pad_color = tf.cast([x for x in config.pad_color], dtype=tf.float32)
       else:
         raise ValueError('pad_color should have 3 elements (RGB) if set!')
     return (preprocessor.random_pad_image,

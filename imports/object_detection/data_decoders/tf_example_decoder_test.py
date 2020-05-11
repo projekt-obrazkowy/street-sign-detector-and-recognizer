@@ -74,7 +74,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
 
     example_decoder = tf_example_decoder.TfExampleDecoder(
         num_additional_channels=2)
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     with self.test_session() as sess:
       tensor_dict = sess.run(tensor_dict)
@@ -95,7 +95,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
 
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual((tensor_dict[fields.InputDataFields.image].
                          get_shape().as_list()), [None, None, 3])
@@ -122,7 +122,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
 
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     with self.test_session() as sess:
       tensor_dict = sess.run(tensor_dict)
@@ -143,7 +143,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
 
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual((tensor_dict[fields.InputDataFields.image].
                          get_shape().as_list()), [None, None, 3])
@@ -182,7 +182,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
 
     example_decoder = tf_example_decoder.TfExampleDecoder(
         load_instance_masks=True, instance_mask_type=input_reader_pb2.PNG_MASKS)
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     with self.test_session() as sess:
       tensor_dict = sess.run(tensor_dict)
@@ -212,7 +212,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
 
     example_decoder = tf_example_decoder.TfExampleDecoder(
         load_instance_masks=True, instance_mask_type=input_reader_pb2.PNG_MASKS)
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     with self.test_session() as sess:
       tensor_dict = sess.run(tensor_dict)
@@ -245,7 +245,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
 
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual((tensor_dict[fields.InputDataFields.groundtruth_boxes]
                          .get_shape().as_list()), [None, 4])
@@ -289,7 +289,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
 
     example_decoder = tf_example_decoder.TfExampleDecoder(num_keypoints=3)
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual((tensor_dict[fields.InputDataFields.groundtruth_boxes]
                          .get_shape().as_list()), [None, 4])
@@ -335,7 +335,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
 
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual((tensor_dict[fields.InputDataFields.groundtruth_boxes]
                          .get_shape().as_list()), [None, 4])
@@ -363,7 +363,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
 
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual((tensor_dict[fields.InputDataFields.groundtruth_classes]
                          .get_shape().as_list()), [2])
@@ -399,17 +399,17 @@ class TfExampleDecoderTest(tf.test.TestCase):
       }
     """
     label_map_path = os.path.join(self.get_temp_dir(), 'label_map.pbtxt')
-    with tf.gfile.Open(label_map_path, 'wb') as f:
+    with tf.io.gfile.GFile(label_map_path, 'wb') as f:
       f.write(label_map_string)
 
     example_decoder = tf_example_decoder.TfExampleDecoder(
         label_map_proto_file=label_map_path)
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual((tensor_dict[fields.InputDataFields.groundtruth_classes]
                          .get_shape().as_list()), [None])
 
-    init = tf.tables_initializer()
+    init = tf.compat.v1.tables_initializer()
     with self.test_session() as sess:
       sess.run(init)
       tensor_dict = sess.run(tensor_dict)
@@ -443,17 +443,17 @@ class TfExampleDecoderTest(tf.test.TestCase):
       }
     """
     label_map_path = os.path.join(self.get_temp_dir(), 'label_map.pbtxt')
-    with tf.gfile.Open(label_map_path, 'wb') as f:
+    with tf.io.gfile.GFile(label_map_path, 'wb') as f:
       f.write(label_map_string)
     example_decoder = tf_example_decoder.TfExampleDecoder(
         label_map_proto_file=label_map_path)
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual((tensor_dict[fields.InputDataFields.groundtruth_classes]
                          .get_shape().as_list()), [None])
 
     with self.test_session() as sess:
-      sess.run(tf.tables_initializer())
+      sess.run(tf.compat.v1.tables_initializer())
       tensor_dict = sess.run(tensor_dict)
 
     self.assertAllEqual([2, -1],
@@ -485,17 +485,17 @@ class TfExampleDecoderTest(tf.test.TestCase):
       }
     """
     label_map_path = os.path.join(self.get_temp_dir(), 'label_map.pbtxt')
-    with tf.gfile.Open(label_map_path, 'wb') as f:
+    with tf.io.gfile.GFile(label_map_path, 'wb') as f:
       f.write(label_map_string)
     example_decoder = tf_example_decoder.TfExampleDecoder(
         label_map_proto_file=label_map_path)
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual((tensor_dict[fields.InputDataFields.groundtruth_classes]
                          .get_shape().as_list()), [None])
 
     with self.test_session() as sess:
-      sess.run(tf.tables_initializer())
+      sess.run(tf.compat.v1.tables_initializer())
       tensor_dict = sess.run(tensor_dict)
 
     self.assertAllEqual([3, 1],
@@ -527,17 +527,17 @@ class TfExampleDecoderTest(tf.test.TestCase):
       }
     """
     label_map_path = os.path.join(self.get_temp_dir(), 'label_map.pbtxt')
-    with tf.gfile.Open(label_map_path, 'wb') as f:
+    with tf.io.gfile.GFile(label_map_path, 'wb') as f:
       f.write(label_map_string)
     example_decoder = tf_example_decoder.TfExampleDecoder(
         label_map_proto_file=label_map_path)
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual((tensor_dict[fields.InputDataFields.groundtruth_classes]
                          .get_shape().as_list()), [None])
 
     with self.test_session() as sess:
-      sess.run(tf.tables_initializer())
+      sess.run(tf.compat.v1.tables_initializer())
       tensor_dict = sess.run(tensor_dict)
 
     self.assertAllEqual([3, 1],
@@ -560,7 +560,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
 
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual((tensor_dict[fields.InputDataFields.groundtruth_area]
                          .get_shape().as_list()), [2])
@@ -587,7 +587,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
 
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual(
         (tensor_dict[fields.InputDataFields.groundtruth_is_crowd].get_shape()
@@ -616,7 +616,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
 
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual(
         (tensor_dict[fields.InputDataFields.groundtruth_difficult].get_shape()
@@ -645,7 +645,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
 
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual(
         (tensor_dict[fields.InputDataFields.groundtruth_group_of].get_shape()
@@ -673,7 +673,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
 
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual((tensor_dict[fields.InputDataFields.groundtruth_weights]
                          .get_shape().as_list()), [None])
@@ -722,7 +722,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
             })).SerializeToString()
     example_decoder = tf_example_decoder.TfExampleDecoder(
         load_instance_masks=True)
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
 
     self.assertAllEqual(
         (tensor_dict[fields.InputDataFields.groundtruth_instance_masks]
@@ -776,7 +776,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
                     dataset_util.int64_list_feature(object_classes)
             })).SerializeToString()
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
     self.assertTrue(
         fields.InputDataFields.groundtruth_instance_masks not in tensor_dict)
 
@@ -791,7 +791,7 @@ class TfExampleDecoderTest(tf.test.TestCase):
                 'image/class/label': dataset_util.int64_list_feature([1, 2]),
             })).SerializeToString()
     example_decoder = tf_example_decoder.TfExampleDecoder()
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
     with self.test_session() as sess:
       tensor_dict = sess.run(tensor_dict)
     self.assertTrue(
@@ -820,13 +820,13 @@ class TfExampleDecoderTest(tf.test.TestCase):
       }
     """
     label_map_path = os.path.join(self.get_temp_dir(), 'label_map.pbtxt')
-    with tf.gfile.Open(label_map_path, 'wb') as f:
+    with tf.io.gfile.GFile(label_map_path, 'wb') as f:
       f.write(label_map_string)
     example_decoder = tf_example_decoder.TfExampleDecoder(
         label_map_proto_file=label_map_path)
-    tensor_dict = example_decoder.decode(tf.convert_to_tensor(example))
+    tensor_dict = example_decoder.decode(tf.convert_to_tensor(value=example))
     with self.test_session() as sess:
-      sess.run(tf.tables_initializer())
+      sess.run(tf.compat.v1.tables_initializer())
       tensor_dict = sess.run(tensor_dict)
     self.assertTrue(
         fields.InputDataFields.groundtruth_image_classes in tensor_dict)

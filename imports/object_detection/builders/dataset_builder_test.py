@@ -30,7 +30,7 @@ class DatasetBuilderTest(tf.test.TestCase):
 
   def create_tf_record(self, has_additional_channels=False, num_examples=1):
     path = os.path.join(self.get_temp_dir(), 'tfrecord')
-    writer = tf.python_io.TFRecordWriter(path)
+    writer = tf.io.TFRecordWriter(path)
 
     image_tensor = np.random.randint(255, size=(4, 5, 3)).astype(np.uint8)
     additional_channels_tensor = np.random.randint(
@@ -76,10 +76,10 @@ class DatasetBuilderTest(tf.test.TestCase):
     """.format(tf_record_path)
     input_reader_proto = input_reader_pb2.InputReader()
     text_format.Merge(input_reader_text_proto, input_reader_proto)
-    tensor_dict = dataset_builder.make_initializable_iterator(
-        dataset_builder.build(input_reader_proto, batch_size=1)).get_next()
+    tensor_dict = tf.compat.v1.data.make_initializable_iterator(
+        dataset_builder, dataset_builder.build(input_reader_proto, batch_size=1)).get_next()
 
-    with tf.train.MonitoredSession() as sess:
+    with tf.compat.v1.train.MonitoredSession() as sess:
       output_dict = sess.run(tensor_dict)
 
     self.assertTrue(
@@ -107,10 +107,10 @@ class DatasetBuilderTest(tf.test.TestCase):
     """.format(tf_record_path)
     input_reader_proto = input_reader_pb2.InputReader()
     text_format.Merge(input_reader_text_proto, input_reader_proto)
-    tensor_dict = dataset_builder.make_initializable_iterator(
-        dataset_builder.build(input_reader_proto, batch_size=1)).get_next()
+    tensor_dict = tf.compat.v1.data.make_initializable_iterator(
+        dataset_builder, dataset_builder.build(input_reader_proto, batch_size=1)).get_next()
 
-    with tf.train.MonitoredSession() as sess:
+    with tf.compat.v1.train.MonitoredSession() as sess:
       output_dict = sess.run(tensor_dict)
     self.assertAllEqual(
         (1, 1, 4, 5),
@@ -134,13 +134,13 @@ class DatasetBuilderTest(tf.test.TestCase):
           tensor_dict[fields.InputDataFields.groundtruth_classes] - 1, depth=3)
       return tensor_dict
 
-    tensor_dict = dataset_builder.make_initializable_iterator(
-        dataset_builder.build(
+    tensor_dict = tf.compat.v1.data.make_initializable_iterator(
+        dataset_builder, dataset_builder.build(
             input_reader_proto,
             transform_input_data_fn=one_hot_class_encoding_fn,
             batch_size=2)).get_next()
 
-    with tf.train.MonitoredSession() as sess:
+    with tf.compat.v1.train.MonitoredSession() as sess:
       output_dict = sess.run(tensor_dict)
 
     self.assertAllEqual([2, 4, 5, 3],
@@ -172,13 +172,13 @@ class DatasetBuilderTest(tf.test.TestCase):
           tensor_dict[fields.InputDataFields.groundtruth_classes] - 1, depth=3)
       return tensor_dict
 
-    tensor_dict = dataset_builder.make_initializable_iterator(
-        dataset_builder.build(
+    tensor_dict = tf.compat.v1.data.make_initializable_iterator(
+        dataset_builder, dataset_builder.build(
             input_reader_proto,
             transform_input_data_fn=one_hot_class_encoding_fn,
             batch_size=2)).get_next()
 
-    with tf.train.MonitoredSession() as sess:
+    with tf.compat.v1.train.MonitoredSession() as sess:
       output_dict = sess.run(tensor_dict)
 
     self.assertAllEqual(
@@ -209,10 +209,10 @@ class DatasetBuilderTest(tf.test.TestCase):
     """.format(tf_record_path)
     input_reader_proto = input_reader_pb2.InputReader()
     text_format.Merge(input_reader_text_proto, input_reader_proto)
-    tensor_dict = dataset_builder.make_initializable_iterator(
-        dataset_builder.build(input_reader_proto, batch_size=1)).get_next()
+    tensor_dict = tf.compat.v1.data.make_initializable_iterator(
+        dataset_builder, dataset_builder.build(input_reader_proto, batch_size=1)).get_next()
 
-    with tf.train.MonitoredSession() as sess:
+    with tf.compat.v1.train.MonitoredSession() as sess:
       output_dict = sess.run(tensor_dict)
       self.assertAllEqual(['0'], output_dict[fields.InputDataFields.source_id])
       output_dict = sess.run(tensor_dict)
@@ -231,10 +231,10 @@ class DatasetBuilderTest(tf.test.TestCase):
     """.format(tf_record_path)
     input_reader_proto = input_reader_pb2.InputReader()
     text_format.Merge(input_reader_text_proto, input_reader_proto)
-    tensor_dict = dataset_builder.make_initializable_iterator(
-        dataset_builder.build(input_reader_proto, batch_size=1)).get_next()
+    tensor_dict = tf.compat.v1.data.make_initializable_iterator(
+        dataset_builder, dataset_builder.build(input_reader_proto, batch_size=1)).get_next()
 
-    with tf.train.MonitoredSession() as sess:
+    with tf.compat.v1.train.MonitoredSession() as sess:
       output_dict = sess.run(tensor_dict)
       self.assertAllEqual(['0'], output_dict[fields.InputDataFields.source_id])
       output_dict = sess.run(tensor_dict)
@@ -248,26 +248,26 @@ class ReadDatasetTest(tf.test.TestCase):
 
     for i in range(5):
       path = self._path_template % i
-      with tf.gfile.Open(path, 'wb') as f:
+      with tf.io.gfile.GFile(path, 'wb') as f:
         f.write('\n'.join([str(i + 1), str((i + 1) * 10)]))
 
     self._shuffle_path_template = os.path.join(self.get_temp_dir(),
                                                'shuffle_%s.txt')
     for i in range(2):
       path = self._shuffle_path_template % i
-      with tf.gfile.Open(path, 'wb') as f:
+      with tf.io.gfile.GFile(path, 'wb') as f:
         f.write('\n'.join([str(i)] * 5))
 
   def _get_dataset_next(self, files, config, batch_size):
 
     def decode_func(value):
-      return [tf.string_to_number(value, out_type=tf.int32)]
+      return [tf.strings.to_number(value, out_type=tf.int32)]
 
     dataset = dataset_builder.read_dataset(tf.data.TextLineDataset, files,
                                            config)
     dataset = dataset.map(decode_func)
     dataset = dataset.batch(batch_size)
-    return dataset.make_one_shot_iterator().get_next()
+    return tf.compat.v1.data.make_one_shot_iterator(dataset).get_next()
 
   def test_make_initializable_iterator_with_hashTable(self):
     keys = [1, 0, -1]
@@ -277,8 +277,8 @@ class ReadDatasetTest(tf.test.TestCase):
             keys=keys, values=list(reversed(keys))),
         default_value=100)
     dataset = dataset.map(table.lookup)
-    data = dataset_builder.make_initializable_iterator(dataset).get_next()
-    init = tf.tables_initializer()
+    data = tf.compat.v1.data.make_initializable_iterator(dataset_builder, dataset).get_next()
+    init = tf.compat.v1.tables_initializer()
 
     with self.test_session() as sess:
       sess.run(init)
@@ -317,7 +317,7 @@ class ReadDatasetTest(tf.test.TestCase):
     config.num_readers = 1
     config.shuffle = True
 
-    tf.set_random_seed(1)  # Set graph level seed.
+    tf.compat.v1.set_random_seed(1)  # Set graph level seed.
     data = self._get_dataset_next(
         [self._shuffle_path_template % '*'], config, batch_size=10)
     expected_non_shuffle_output = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]

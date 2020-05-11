@@ -27,10 +27,10 @@ slim = tf.contrib.slim
 class NormalizedToImageCoordinatesTest(tf.test.TestCase):
 
   def test_normalized_to_image_coordinates(self):
-    normalized_boxes = tf.placeholder(tf.float32, shape=(None, 1, 4))
+    normalized_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 1, 4))
     normalized_boxes_np = np.array([[[0.0, 0.0, 1.0, 1.0]],
                                     [[0.5, 0.5, 1.0, 1.0]]])
-    image_shape = tf.convert_to_tensor([1, 4, 4, 3], dtype=tf.int32)
+    image_shape = tf.convert_to_tensor(value=[1, 4, 4, 3], dtype=tf.int32)
     absolute_boxes = ops.normalized_to_image_coordinates(normalized_boxes,
                                                          image_shape,
                                                          parallel_iterations=2)
@@ -48,7 +48,7 @@ class NormalizedToImageCoordinatesTest(tf.test.TestCase):
 class ReduceSumTrailingDimensions(tf.test.TestCase):
 
   def test_reduce_sum_trailing_dimensions(self):
-    input_tensor = tf.placeholder(tf.float32, shape=[None, None, None])
+    input_tensor = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None])
     reduced_tensor = ops.reduce_sum_trailing_dimensions(input_tensor, ndims=2)
     with self.test_session() as sess:
       reduced_np = sess.run(reduced_tensor,
@@ -235,10 +235,10 @@ class OpsDenseToSparseBoxesTest(tf.test.TestCase):
     num_classes = 4
     num_valid_boxes = 3
     code_size = 4
-    dense_location_placeholder = tf.placeholder(tf.float32,
+    dense_location_placeholder = tf.compat.v1.placeholder(tf.float32,
                                                 shape=(num_valid_boxes,
                                                        code_size))
-    dense_num_boxes_placeholder = tf.placeholder(tf.int32, shape=(num_classes))
+    dense_num_boxes_placeholder = tf.compat.v1.placeholder(tf.int32, shape=(num_classes))
     box_locations, box_classes = ops.dense_to_sparse_boxes(
         dense_location_placeholder, dense_num_boxes_placeholder, num_classes)
     feed_dict = {dense_location_placeholder: np.random.uniform(
@@ -262,9 +262,9 @@ class OpsDenseToSparseBoxesTest(tf.test.TestCase):
     num_boxes = 10
     code_size = 4
 
-    dense_location_placeholder = tf.placeholder(tf.float32, shape=(num_boxes,
+    dense_location_placeholder = tf.compat.v1.placeholder(tf.float32, shape=(num_boxes,
                                                                    code_size))
-    dense_num_boxes_placeholder = tf.placeholder(tf.int32, shape=(num_classes))
+    dense_num_boxes_placeholder = tf.compat.v1.placeholder(tf.int32, shape=(num_classes))
     box_locations, box_classes = ops.dense_to_sparse_boxes(
         dense_location_placeholder, dense_num_boxes_placeholder, num_classes)
     feed_dict = {dense_location_placeholder: np.random.uniform(
@@ -311,10 +311,10 @@ class OpsTestIndicesToDenseVector(tf.test.TestCase):
     expected_output = np.zeros(size, dtype=np.float32)
     expected_output[rand_indices] = 1.
 
-    tf_all_indices = tf.placeholder(tf.int32)
+    tf_all_indices = tf.compat.v1.placeholder(tf.int32)
     tf_rand_indices = tf.constant(rand_indices)
     indicator = ops.indices_to_dense_vector(tf_rand_indices,
-                                            tf.shape(tf_all_indices)[0])
+                                            tf.shape(input=tf_all_indices)[0])
     feed_dict = {tf_all_indices: all_indices}
 
     with self.test_session() as sess:
@@ -394,14 +394,14 @@ class OpsTestIndicesToDenseVector(tf.test.TestCase):
 class GroundtruthFilterTest(tf.test.TestCase):
 
   def test_filter_groundtruth(self):
-    input_image = tf.placeholder(tf.float32, shape=(None, None, 3))
-    input_boxes = tf.placeholder(tf.float32, shape=(None, 4))
-    input_classes = tf.placeholder(tf.int32, shape=(None,))
-    input_is_crowd = tf.placeholder(tf.bool, shape=(None,))
-    input_area = tf.placeholder(tf.float32, shape=(None,))
-    input_difficult = tf.placeholder(tf.float32, shape=(None,))
-    input_label_types = tf.placeholder(tf.string, shape=(None,))
-    valid_indices = tf.placeholder(tf.int32, shape=(None,))
+    input_image = tf.compat.v1.placeholder(tf.float32, shape=(None, None, 3))
+    input_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 4))
+    input_classes = tf.compat.v1.placeholder(tf.int32, shape=(None,))
+    input_is_crowd = tf.compat.v1.placeholder(tf.bool, shape=(None,))
+    input_area = tf.compat.v1.placeholder(tf.float32, shape=(None,))
+    input_difficult = tf.compat.v1.placeholder(tf.float32, shape=(None,))
+    input_label_types = tf.compat.v1.placeholder(tf.string, shape=(None,))
+    valid_indices = tf.compat.v1.placeholder(tf.int32, shape=(None,))
     input_tensors = {
         fields.InputDataFields.image: input_image,
         fields.InputDataFields.groundtruth_boxes: input_boxes,
@@ -459,13 +459,13 @@ class GroundtruthFilterTest(tf.test.TestCase):
         self.assertAllEqual(expected_tensors[key], output_tensors[key])
 
   def test_filter_with_missing_fields(self):
-    input_boxes = tf.placeholder(tf.float32, shape=(None, 4))
-    input_classes = tf.placeholder(tf.int32, shape=(None,))
+    input_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 4))
+    input_classes = tf.compat.v1.placeholder(tf.int32, shape=(None,))
     input_tensors = {
         fields.InputDataFields.groundtruth_boxes: input_boxes,
         fields.InputDataFields.groundtruth_classes: input_classes
     }
-    valid_indices = tf.placeholder(tf.int32, shape=(None,))
+    valid_indices = tf.compat.v1.placeholder(tf.int32, shape=(None,))
 
     feed_dict = {
         input_boxes:
@@ -491,12 +491,12 @@ class GroundtruthFilterTest(tf.test.TestCase):
         self.assertAllEqual(expected_tensors[key], output_tensors[key])
 
   def test_filter_with_empty_fields(self):
-    input_boxes = tf.placeholder(tf.float32, shape=(None, 4))
-    input_classes = tf.placeholder(tf.int32, shape=(None,))
-    input_is_crowd = tf.placeholder(tf.bool, shape=(None,))
-    input_area = tf.placeholder(tf.float32, shape=(None,))
-    input_difficult = tf.placeholder(tf.float32, shape=(None,))
-    valid_indices = tf.placeholder(tf.int32, shape=(None,))
+    input_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 4))
+    input_classes = tf.compat.v1.placeholder(tf.int32, shape=(None,))
+    input_is_crowd = tf.compat.v1.placeholder(tf.bool, shape=(None,))
+    input_area = tf.compat.v1.placeholder(tf.float32, shape=(None,))
+    input_difficult = tf.compat.v1.placeholder(tf.float32, shape=(None,))
+    valid_indices = tf.compat.v1.placeholder(tf.int32, shape=(None,))
     input_tensors = {
         fields.InputDataFields.groundtruth_boxes: input_boxes,
         fields.InputDataFields.groundtruth_classes: input_classes,
@@ -542,12 +542,12 @@ class GroundtruthFilterTest(tf.test.TestCase):
         self.assertAllEqual(expected_tensors[key], output_tensors[key])
 
   def test_filter_with_empty_groundtruth_boxes(self):
-    input_boxes = tf.placeholder(tf.float32, shape=(None, 4))
-    input_classes = tf.placeholder(tf.int32, shape=(None,))
-    input_is_crowd = tf.placeholder(tf.bool, shape=(None,))
-    input_area = tf.placeholder(tf.float32, shape=(None,))
-    input_difficult = tf.placeholder(tf.float32, shape=(None,))
-    valid_indices = tf.placeholder(tf.int32, shape=(None,))
+    input_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 4))
+    input_classes = tf.compat.v1.placeholder(tf.int32, shape=(None,))
+    input_is_crowd = tf.compat.v1.placeholder(tf.bool, shape=(None,))
+    input_area = tf.compat.v1.placeholder(tf.float32, shape=(None,))
+    input_difficult = tf.compat.v1.placeholder(tf.float32, shape=(None,))
+    valid_indices = tf.compat.v1.placeholder(tf.int32, shape=(None,))
     input_tensors = {
         fields.InputDataFields.groundtruth_boxes: input_boxes,
         fields.InputDataFields.groundtruth_classes: input_classes,
@@ -583,14 +583,14 @@ class GroundtruthFilterTest(tf.test.TestCase):
 class RetainGroundTruthWithPositiveClasses(tf.test.TestCase):
 
   def test_filter_groundtruth_with_positive_classes(self):
-    input_image = tf.placeholder(tf.float32, shape=(None, None, 3))
-    input_boxes = tf.placeholder(tf.float32, shape=(None, 4))
-    input_classes = tf.placeholder(tf.int32, shape=(None,))
-    input_is_crowd = tf.placeholder(tf.bool, shape=(None,))
-    input_area = tf.placeholder(tf.float32, shape=(None,))
-    input_difficult = tf.placeholder(tf.float32, shape=(None,))
-    input_label_types = tf.placeholder(tf.string, shape=(None,))
-    valid_indices = tf.placeholder(tf.int32, shape=(None,))
+    input_image = tf.compat.v1.placeholder(tf.float32, shape=(None, None, 3))
+    input_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 4))
+    input_classes = tf.compat.v1.placeholder(tf.int32, shape=(None,))
+    input_is_crowd = tf.compat.v1.placeholder(tf.bool, shape=(None,))
+    input_area = tf.compat.v1.placeholder(tf.float32, shape=(None,))
+    input_difficult = tf.compat.v1.placeholder(tf.float32, shape=(None,))
+    input_label_types = tf.compat.v1.placeholder(tf.string, shape=(None,))
+    valid_indices = tf.compat.v1.placeholder(tf.int32, shape=(None,))
     input_tensors = {
         fields.InputDataFields.image: input_image,
         fields.InputDataFields.groundtruth_boxes: input_boxes,
@@ -746,7 +746,7 @@ class GroundtruthFilterWithNanBoxTest(tf.test.TestCase):
 class OpsTestNormalizeToTarget(tf.test.TestCase):
 
   def test_create_normalize_to_target(self):
-    inputs = tf.random_uniform([5, 10, 12, 3])
+    inputs = tf.random.uniform([5, 10, 12, 3])
     target_norm_value = 4.0
     dim = 3
     with self.test_session():
@@ -756,7 +756,7 @@ class OpsTestNormalizeToTarget(tf.test.TestCase):
       self.assertEqual(var_name, 'NormalizeToTarget/weights:0')
 
   def test_invalid_dim(self):
-    inputs = tf.random_uniform([5, 10, 12, 3])
+    inputs = tf.random.uniform([5, 10, 12, 3])
     target_norm_value = 4.0
     dim = 10
     with self.assertRaisesRegexp(
@@ -765,7 +765,7 @@ class OpsTestNormalizeToTarget(tf.test.TestCase):
       ops.normalize_to_target(inputs, target_norm_value, dim)
 
   def test_invalid_target_norm_values(self):
-    inputs = tf.random_uniform([5, 10, 12, 3])
+    inputs = tf.random.uniform([5, 10, 12, 3])
     target_norm_value = [4.0, 4.0]
     dim = 3
     with self.assertRaisesRegexp(
@@ -773,7 +773,7 @@ class OpsTestNormalizeToTarget(tf.test.TestCase):
       ops.normalize_to_target(inputs, target_norm_value, dim)
 
   def test_correct_output_shape(self):
-    inputs = tf.random_uniform([5, 10, 12, 3])
+    inputs = tf.random.uniform([5, 10, 12, 3])
     target_norm_value = 4.0
     dim = 3
     with self.test_session():
@@ -791,7 +791,7 @@ class OpsTestNormalizeToTarget(tf.test.TestCase):
     with self.test_session() as sess:
       normalized_inputs = ops.normalize_to_target(inputs, target_norm_value,
                                                   dim)
-      sess.run(tf.global_variables_initializer())
+      sess.run(tf.compat.v1.global_variables_initializer())
       output = normalized_inputs.eval()
       self.assertAllClose(output, expected_output)
 
@@ -805,7 +805,7 @@ class OpsTestNormalizeToTarget(tf.test.TestCase):
     with self.test_session() as sess:
       normalized_inputs = ops.normalize_to_target(inputs, target_norm_value,
                                                   dim)
-      sess.run(tf.global_variables_initializer())
+      sess.run(tf.compat.v1.global_variables_initializer())
       output = normalized_inputs.eval()
       self.assertAllClose(output, expected_output)
 
@@ -819,7 +819,7 @@ class OpsTestPositionSensitiveCropRegions(tf.test.TestCase):
     # First channel is 1's, second channel is 2's, etc.
     image = tf.constant(range(1, 3 * 2 + 1) * 6, dtype=tf.float32,
                         shape=image_shape)
-    boxes = tf.random_uniform((2, 4))
+    boxes = tf.random.uniform((2, 4))
 
     # The result for both boxes should be [[1, 2], [3, 4], [5, 6]]
     # before averaging.
@@ -842,14 +842,14 @@ class OpsTestPositionSensitiveCropRegions(tf.test.TestCase):
     image = tf.constant(range(1, 3 * 3 + 1), dtype=tf.float32,
                         shape=[3, 3, 1])
     tiled_image = tf.tile(image, [1, 1, image_shape[2]])
-    boxes = tf.random_uniform((3, 4))
+    boxes = tf.random.uniform((3, 4))
     box_ind = tf.constant([0, 0, 0], dtype=tf.int32)
 
     # All channels are equal so position-sensitive crop and resize should
     # work as the usual crop and resize for just one channel.
     crop = tf.image.crop_and_resize(tf.expand_dims(image, axis=0), boxes,
                                     box_ind, crop_size)
-    crop_and_pool = tf.reduce_mean(crop, [1, 2], keep_dims=True)
+    crop_and_pool = tf.reduce_mean(input_tensor=crop, axis=[1, 2], keepdims=True)
 
     ps_crop_and_pool = ops.position_sensitive_crop_regions(
         tiled_image,
@@ -908,7 +908,7 @@ class OpsTestPositionSensitiveCropRegions(tf.test.TestCase):
     # First channel is 1's, second channel is 2's, etc.
     image = tf.constant(range(1, 3 * 2 + 1) * 6, dtype=tf.float32,
                         shape=image_shape)
-    boxes = tf.random_uniform((num_boxes, 4))
+    boxes = tf.random.uniform((num_boxes, 4))
 
     expected_output = []
 
@@ -946,7 +946,7 @@ class OpsTestPositionSensitiveCropRegions(tf.test.TestCase):
     # First channel is 1's, second channel is 2's, etc.
     image = tf.constant(range(1, 3 * 2 + 1) * 6, dtype=tf.float32,
                         shape=image_shape)
-    boxes = tf.random_uniform((num_boxes, 4))
+    boxes = tf.random.uniform((num_boxes, 4))
 
     expected_output = []
 
@@ -979,7 +979,7 @@ class OpsTestPositionSensitiveCropRegions(tf.test.TestCase):
       ps_crop = ops.position_sensitive_crop_regions(
           image, boxes, crop_size, num_spatial_bins, global_pool=False)
       ps_crop_and_pool = tf.reduce_mean(
-          ps_crop, reduction_indices=(1, 2), keep_dims=True)
+          input_tensor=ps_crop, axis=(1, 2), keepdims=True)
 
       with self.test_session() as sess:
         output = sess.run(ps_crop_and_pool)
@@ -1007,15 +1007,15 @@ class OpsTestBatchPositionSensitiveCropRegions(tf.test.TestCase):
     image_shape = [2, 3, 3, 4]
     crop_size = [2, 2]
 
-    image = tf.random_uniform(image_shape)
-    boxes = tf.random_uniform((2, 3, 4))
+    image = tf.random.uniform(image_shape)
+    boxes = tf.random.uniform((2, 3, 4))
     box_ind = tf.constant([0, 0, 0, 1, 1, 1], dtype=tf.int32)
 
     # When a single bin is used, position-sensitive crop and pool should be
     # the same as non-position sensitive crop and pool.
     crop = tf.image.crop_and_resize(image, tf.reshape(boxes, [-1, 4]), box_ind,
                                     crop_size)
-    crop_and_pool = tf.reduce_mean(crop, [1, 2], keepdims=True)
+    crop_and_pool = tf.reduce_mean(input_tensor=crop, axis=[1, 2], keepdims=True)
     crop_and_pool = tf.reshape(crop_and_pool, [2, 3, 1, 1, 4])
 
     ps_crop_and_pool = ops.batch_position_sensitive_crop_regions(
@@ -1067,8 +1067,8 @@ class OpsTestBatchPositionSensitiveCropRegions(tf.test.TestCase):
     image_shape = [2, 3, 3, 4]
     crop_size = [1, 1]
 
-    images = tf.random_uniform(image_shape)
-    boxes = tf.random_uniform((2, 3, 4))
+    images = tf.random.uniform(image_shape)
+    boxes = tf.random.uniform((2, 3, 4))
     # box_ind = tf.constant([0, 0, 0, 1, 1, 1], dtype=tf.int32)
 
     # Since single_bin is used and crop_size = [1, 1] (i.e., no crop resize),
@@ -1302,8 +1302,8 @@ class MatmulGatherOnZerothAxis(test_case.TestCase):
     self.assertAllClose(gather_output, expected_output)
 
   def test_gather_with_dynamic_shape_input(self):
-    params_placeholder = tf.placeholder(tf.float32, shape=[None, 4])
-    indices_placeholder = tf.placeholder(tf.int32, shape=[None])
+    params_placeholder = tf.compat.v1.placeholder(tf.float32, shape=[None, 4])
+    indices_placeholder = tf.compat.v1.placeholder(tf.int32, shape=[None])
     gather_result = ops.matmul_gather_on_zeroth_axis(
         params_placeholder, indices_placeholder)
     params = np.array([[1, 2, 3, 4],

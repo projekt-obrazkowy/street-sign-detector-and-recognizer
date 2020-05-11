@@ -389,9 +389,9 @@ class BoxListOpsTest(test_case.TestCase):
     self.assertAllClose(result_weights, expected_weights)
 
   def test_dynamic_boolean_mask_with_field(self):
-    corners = tf.placeholder(tf.float32, [None, 4])
-    indicator = tf.placeholder(tf.bool, [None])
-    weights = tf.placeholder(tf.float32, [None, 1])
+    corners = tf.compat.v1.placeholder(tf.float32, [None, 4])
+    indicator = tf.compat.v1.placeholder(tf.bool, [None])
+    weights = tf.compat.v1.placeholder(tf.float32, [None, 1])
     expected_subset = [4 * [0.0], 4 * [2.0], 4 * [4.0]]
     expected_weights = [[.1], [.5], [.9]]
 
@@ -446,9 +446,9 @@ class BoxListOpsTest(test_case.TestCase):
     self.assertAllClose(result_weights, expected_weights)
 
   def test_dynamic_gather_with_field(self):
-    corners = tf.placeholder(tf.float32, [None, 4])
-    indices = tf.placeholder(tf.int32, [None])
-    weights = tf.placeholder(tf.float32, [None, 1])
+    corners = tf.compat.v1.placeholder(tf.float32, [None, 4])
+    indices = tf.compat.v1.placeholder(tf.int32, [None])
+    weights = tf.compat.v1.placeholder(tf.float32, [None, 1])
     expected_subset = [4 * [0.0], 4 * [2.0], 4 * [4.0]]
     expected_weights = [[.1], [.5], [.9]]
 
@@ -497,7 +497,7 @@ class BoxListOpsTest(test_case.TestCase):
     corners = tf.constant([4 * [0.0], 4 * [1.0], 4 * [2.0], 4 * [3.0], 4 * [4.0]
                           ])
     weights = tf.constant([.5, .3, .7, .1, .9], tf.float32)
-    indices = tf.reshape(tf.where(tf.greater(weights, 0.4)), [-1])
+    indices = tf.reshape(tf.compat.v1.where(tf.greater(weights, 0.4)), [-1])
     expected_subset = [4 * [0.0], 4 * [2.0], 4 * [4.0]]
     expected_weights = [.5, .7, .9]
 
@@ -581,8 +581,8 @@ class BoxListOpsTest(test_case.TestCase):
                            [0, 0, 3, 2]], tf.float32)
     boxes = box_list.BoxList(corners)
     image_and_boxes = box_list_ops.visualize_boxes_in_image(image, boxes)
-    image_and_boxes_bw = tf.to_float(
-        tf.greater(tf.reduce_sum(image_and_boxes, 2), 0.0))
+    image_and_boxes_bw = tf.cast(
+        tf.greater(tf.reduce_sum(input_tensor=image_and_boxes, axis=2), 0.0), dtype=tf.float32)
     exp_result = [[1, 1, 1, 0],
                   [1, 1, 1, 0],
                   [1, 1, 1, 0],
@@ -903,7 +903,7 @@ class CoordinatesConversionTest(tf.test.TestCase):
     img = tf.ones((128, 100, 100, 3))
     boxlist = box_list.BoxList(coordinates)
     normalized_boxlist = box_list_ops.to_normalized_coordinates(
-        boxlist, tf.shape(img)[1], tf.shape(img)[2])
+        boxlist, tf.shape(input=img)[1], tf.shape(input=img)[2])
     expected_boxes = [[0, 0, 1, 1],
                       [0.25, 0.25, 0.75, 0.75]]
 
@@ -917,7 +917,7 @@ class CoordinatesConversionTest(tf.test.TestCase):
     img = tf.ones((128, 100, 100, 3))
     boxlist = box_list.BoxList(coordinates)
     normalized_boxlist = box_list_ops.to_normalized_coordinates(
-        boxlist, tf.shape(img)[1], tf.shape(img)[2])
+        boxlist, tf.shape(input=img)[1], tf.shape(input=img)[2])
 
     with self.test_session() as sess:
       with self.assertRaisesOpError('assertion failed'):
@@ -929,8 +929,8 @@ class CoordinatesConversionTest(tf.test.TestCase):
     img = tf.ones((128, 100, 100, 3))
     boxlist = box_list.BoxList(coordinates)
     absolute_boxlist = box_list_ops.to_absolute_coordinates(boxlist,
-                                                            tf.shape(img)[1],
-                                                            tf.shape(img)[2])
+                                                            tf.shape(input=img)[1],
+                                                            tf.shape(input=img)[2])
     expected_boxes = [[0, 0, 100, 100],
                       [25, 25, 75, 75]]
 
@@ -944,8 +944,8 @@ class CoordinatesConversionTest(tf.test.TestCase):
     img = tf.ones((128, 100, 100, 3))
     boxlist = box_list.BoxList(coordinates)
     absolute_boxlist = box_list_ops.to_absolute_coordinates(boxlist,
-                                                            tf.shape(img)[1],
-                                                            tf.shape(img)[2])
+                                                            tf.shape(input=img)[1],
+                                                            tf.shape(input=img)[2])
 
     with self.test_session() as sess:
       with self.assertRaisesOpError('assertion failed'):
@@ -960,11 +960,11 @@ class CoordinatesConversionTest(tf.test.TestCase):
 
     boxlist = box_list.BoxList(tf.constant(coordinates, tf.float32))
     boxlist = box_list_ops.to_normalized_coordinates(boxlist,
-                                                     tf.shape(img)[1],
-                                                     tf.shape(img)[2])
+                                                     tf.shape(input=img)[1],
+                                                     tf.shape(input=img)[2])
     boxlist = box_list_ops.to_absolute_coordinates(boxlist,
-                                                   tf.shape(img)[1],
-                                                   tf.shape(img)[2])
+                                                   tf.shape(input=img)[1],
+                                                   tf.shape(input=img)[2])
 
     with self.test_session() as sess:
       out = sess.run(boxlist.get())
@@ -978,11 +978,11 @@ class CoordinatesConversionTest(tf.test.TestCase):
 
     boxlist = box_list.BoxList(tf.constant(coordinates, tf.float32))
     boxlist = box_list_ops.to_absolute_coordinates(boxlist,
-                                                   tf.shape(img)[1],
-                                                   tf.shape(img)[2])
+                                                   tf.shape(input=img)[1],
+                                                   tf.shape(input=img)[2])
     boxlist = box_list_ops.to_normalized_coordinates(boxlist,
-                                                     tf.shape(img)[1],
-                                                     tf.shape(img)[2])
+                                                     tf.shape(input=img)[1],
+                                                     tf.shape(input=img)[2])
 
     with self.test_session() as sess:
       out = sess.run(boxlist.get())
@@ -995,8 +995,8 @@ class CoordinatesConversionTest(tf.test.TestCase):
     boxlist = box_list.BoxList(coordinates)
     absolute_boxlist = box_list_ops.to_absolute_coordinates(
         boxlist,
-        tf.shape(img)[1],
-        tf.shape(img)[2],
+        tf.shape(input=img)[1],
+        tf.shape(input=img)[2],
         maximum_normalized_coordinate=1.1)
 
     with self.test_session() as sess:
@@ -1097,7 +1097,7 @@ class BoxRefinementTest(tf.test.TestCase):
     sampled_boxes = box_list_ops.sample_boxes_by_jittering(
         boxlist=boxes, num_boxes_to_sample=10)
     iou = box_list_ops.iou(boxes, sampled_boxes)
-    iou_max = tf.reduce_max(iou, axis=0)
+    iou_max = tf.reduce_max(input_tensor=iou, axis=0)
     with self.test_session() as sess:
       (np_sampled_boxes, np_iou_max) = sess.run([sampled_boxes.get(), iou_max])
       self.assertAllEqual(np_sampled_boxes.shape, [10, 4])

@@ -130,7 +130,7 @@ FLAGS = flags.FLAGS
 
 def main(_):
   pipeline_config = pipeline_pb2.TrainEvalPipelineConfig()
-  with tf.gfile.GFile(FLAGS.pipeline_config_path, 'r') as f:
+  with tf.io.gfile.GFile(FLAGS.pipeline_config_path, 'r') as f:
     text_format.Merge(f.read(), pipeline_config)
   text_format.Merge(FLAGS.config_override, pipeline_config)
   if FLAGS.input_shape:
@@ -147,4 +147,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-  tf.app.run()
+  tf.compat.v1.app.run()

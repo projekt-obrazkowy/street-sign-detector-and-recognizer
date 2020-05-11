@@ -113,7 +113,7 @@ def transform_input_data(tensor_dict,
   # Apply model preprocessing ops and resize instance masks.
   image = tensor_dict[fields.InputDataFields.image]
   preprocessed_resized_image, true_image_shape = model_preprocess_fn(
-      tf.expand_dims(tf.to_float(image), axis=0))
+      tf.expand_dims(tf.cast(image, dtype=tf.float32), axis=0))
   if use_bfloat16:
     preprocessed_resized_image = tf.cast(
         preprocessed_resized_image, tf.bfloat16)
@@ -163,7 +163,7 @@ def transform_input_data(tensor_dict,
         merged_confidences)
   if fields.InputDataFields.groundtruth_boxes in tensor_dict:
     tensor_dict[fields.InputDataFields.num_groundtruth_boxes] = tf.shape(
-        tensor_dict[fields.InputDataFields.groundtruth_boxes])[0]
+        input=tensor_dict[fields.InputDataFields.groundtruth_boxes])[0]
 
   return tensor_dict
 
@@ -284,7 +284,7 @@ def augment_input_data(tensor_dict, data_augmentation_options):
     input tensor dictionary.
   """
   tensor_dict[fields.InputDataFields.image] = tf.expand_dims(
-      tf.to_float(tensor_dict[fields.InputDataFields.image]), 0)
+      tf.cast(tensor_dict[fields.InputDataFields.image], dtype=tf.float32), 0)
 
   include_instance_masks = (fields.InputDataFields.groundtruth_instance_masks
                             in tensor_dict)
@@ -355,10 +355,10 @@ def _replace_empty_string_with_random_number(string_tensor):
   empty_string = tf.constant('', dtype=tf.string, name='EmptyString')
 
   random_source_id = tf.as_string(
-      tf.random_uniform(shape=[], maxval=2**63 - 1, dtype=tf.int64))
+      tf.random.uniform(shape=[], maxval=2**63 - 1, dtype=tf.int64))
 
   out_string = tf.cond(
-      tf.equal(string_tensor, empty_string),
+      pred=tf.equal(string_tensor, empty_string),
       true_fn=lambda: random_source_id,
       false_fn=lambda: string_tensor)
 
@@ -371,7 +371,7 @@ def _get_features_dict(input_dict):
   source_id = _replace_empty_string_with_random_number(
       input_dict[fields.InputDataFields.source_id])
 
-  hash_from_source_id = tf.string_to_hash_bucket_fast(source_id, HASH_BINS)
+  hash_from_source_id = tf.strings.to_hash_bucket_fast(source_id, HASH_BINS)
   features = {
       fields.InputDataFields.image:
           input_dict[fields.InputDataFields.image],
@@ -603,7 +603,7 @@ def create_predict_input_fn(model_config, predict_input_config):
       `ServingInputReceiver`.
     """
     del params
-    example = tf.placeholder(dtype=tf.string, shape=[], name='tf_example')
+    example = tf.compat.v1.placeholder(dtype=tf.string, shape=[], name='tf_example')
 
     num_classes = config_util.get_number_of_classes(model_config)
     model = model_builder.build(model_config, is_training=False)
@@ -620,7 +620,7 @@ def create_predict_input_fn(model_config, predict_input_config):
         load_instance_masks=False,
         num_additional_channels=predict_input_config.num_additional_channels)
     input_dict = transform_fn(decoder.decode(example))
-    images = tf.to_float(input_dict[fields.InputDataFields.image])
+    images = tf.cast(input_dict[fields.InputDataFields.image], dtype=tf.float32)
     images = tf.expand_dims(images, axis=0)
     true_image_shape = tf.expand_dims(
         input_dict[fields.InputDataFields.true_image_shape], axis=0)

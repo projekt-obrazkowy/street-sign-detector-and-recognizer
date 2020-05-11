@@ -104,12 +104,12 @@ def convert_kitti_to_tfrecords(data_dir, output_path, classes_to_use,
                            'training',
                            'image_2')
 
-  train_writer = tf.python_io.TFRecordWriter('%s_train.tfrecord'%
+  train_writer = tf.io.TFRecordWriter('%s_train.tfrecord'%
                                              output_path)
-  val_writer = tf.python_io.TFRecordWriter('%s_val.tfrecord'%
+  val_writer = tf.io.TFRecordWriter('%s_val.tfrecord'%
                                            output_path)
 
-  images = sorted(tf.gfile.ListDirectory(image_dir))
+  images = sorted(tf.io.gfile.listdir(image_dir))
   for img_name in images:
     img_num = int(img_name.split('.')[0])
     is_validation_img = img_num < validation_set_size
@@ -147,7 +147,7 @@ def prepare_example(image_path, annotations, label_map_dict):
   Returns:
     example: The converted tf.Example.
   """
-  with tf.gfile.GFile(image_path, 'rb') as fid:
+  with tf.io.gfile.GFile(image_path, 'rb') as fid:
     encoded_png = fid.read()
   encoded_png_io = io.BytesIO(encoded_png)
   image = pil.open(encoded_png_io)
@@ -307,4 +307,4 @@ def main(_):
       validation_set_size=FLAGS.validation_set_size)
 
 if __name__ == '__main__':
-  tf.app.run()
+  tf.compat.v1.app.run()

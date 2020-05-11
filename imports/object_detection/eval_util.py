@@ -66,15 +66,15 @@ def write_metrics(metrics, global_step, summary_dir):
     global_step: Global step at which the metrics are computed.
     summary_dir: Directory to write tensorflow summaries to.
   """
-  tf.logging.info('Writing metrics to tf summary.')
-  summary_writer = tf.summary.FileWriterCache.get(summary_dir)
+  tf.compat.v1.logging.info('Writing metrics to tf summary.')
+  summary_writer = tf.compat.v1.summary.FileWriterCache.get(summary_dir)
   for key in sorted(metrics):
-    summary = tf.Summary(value=[
-        tf.Summary.Value(tag=key, simple_value=metrics[key]),
+    summary = tf.compat.v1.Summary(value=[
+        tf.compat.v1.Summary.Value(tag=key, simple_value=metrics[key]),
     ])
     summary_writer.add_summary(summary, global_step)
-    tf.logging.info('%s: %f', key, metrics[key])
-  tf.logging.info('Metrics written to tf summary.')
+    tf.compat.v1.logging.info('%s: %f', key, metrics[key])
+  tf.compat.v1.logging.info('Metrics written to tf summary.')
 
 
 # TODO(rathodv): Add tests.
@@ -154,7 +154,7 @@ def visualize_detection_results(result_dict,
   if show_groundtruth and input_fields.groundtruth_boxes not in result_dict:
     raise ValueError('If show_groundtruth is enabled, result_dict must contain '
                      'groundtruth_boxes.')
-  tf.logging.info('Creating detection visualizations.')
+  tf.compat.v1.logging.info('Creating detection visualizations.')
   category_index = label_map_util.create_category_index(categories)
 
   image = np.squeeze(result_dict[input_fields.original_image], axis=0)
@@ -208,17 +208,17 @@ def visualize_detection_results(result_dict,
       export_path = os.path.join(export_dir, 'export-{}.png'.format(tag))
     vis_utils.save_image_array_as_png(image, export_path)
 
-  summary = tf.Summary(value=[
-      tf.Summary.Value(
+  summary = tf.compat.v1.Summary(value=[
+      tf.compat.v1.Summary.Value(
           tag=tag,
-          image=tf.Summary.Image(
+          image=tf.compat.v1.Summary.Image(
               encoded_image_string=vis_utils.encode_image_array_as_png_str(
                   image)))
   ])
-  summary_writer = tf.summary.FileWriterCache.get(summary_dir)
+  summary_writer = tf.compat.v1.summary.FileWriterCache.get(summary_dir)
   summary_writer.add_summary(summary, global_step)
 
-  tf.logging.info('Detection visualizations written to summary with tag %s.',
+  tf.compat.v1.logging.info('Detection visualizations written to summary with tag %s.',
                   tag)
 
 
@@ -287,21 +287,21 @@ def _run_checkpoint_once(tensor_dict,
   """
   if save_graph and not save_graph_dir:
     raise ValueError('`save_graph_dir` must be defined.')
-  sess = tf.Session(master, graph=tf.get_default_graph())
-  sess.run(tf.global_variables_initializer())
-  sess.run(tf.local_variables_initializer())
-  sess.run(tf.tables_initializer())
+  sess = tf.compat.v1.Session(master, graph=tf.compat.v1.get_default_graph())
+  sess.run(tf.compat.v1.global_variables_initializer())
+  sess.run(tf.compat.v1.local_variables_initializer())
+  sess.run(tf.compat.v1.tables_initializer())
   if restore_fn:
     restore_fn(sess)
   else:
     if not checkpoint_dirs:
       raise ValueError('`checkpoint_dirs` must have at least one entry.')
     checkpoint_file = tf.train.latest_checkpoint(checkpoint_dirs[0])
-    saver = tf.train.Saver(variables_to_restore)
+    saver = tf.compat.v1.train.Saver(variables_to_restore)
     saver.restore(sess, checkpoint_file)
 
   if save_graph:
-    tf.train.write_graph(sess.graph_def, save_graph_dir, 'eval.pbtxt')
+    tf.io.write_graph(sess.graph_def, save_graph_dir, 'eval.pbtxt')
 
   counters = {'skipped': 0, 'success': 0}
   aggregate_result_losses_dict = collections.defaultdict(list)
@@ -309,7 +309,7 @@ def _run_checkpoint_once(tensor_dict,
     try:
       for batch in range(int(num_batches)):
         if (batch + 1) % 100 == 0:
-          tf.logging.info('Running eval ops batch %d/%d', batch + 1,
+          tf.compat.v1.logging.info('Running eval ops batch %d/%d', batch + 1,
                           num_batches)
         if not batch_processor:
           try:
@@ -319,7 +319,7 @@ def _run_checkpoint_once(tensor_dict,
                                                         losses_dict])
             counters['success'] += 1
           except tf.errors.InvalidArgumentError:
-            tf.logging.info('Skipping image')
+            tf.compat.v1.logging.info('Skipping image')
             counters['skipped'] += 1
             result_dict = {}
         else:
@@ -344,29 +344,29 @@ def _run_checkpoint_once(tensor_dict,
               image_id=image_id, groundtruth_dict=result_dict)
           evaluator.add_single_detected_image_info(
               image_id=image_id, detections_dict=result_dict)
-      tf.logging.info('Running eval batches done.')
+      tf.compat.v1.logging.info('Running eval batches done.')
     except tf.errors.OutOfRangeError:
-      tf.logging.info('Done evaluating -- epoch limit reached')
+      tf.compat.v1.logging.info('Done evaluating -- epoch limit reached')
     finally:
       # When done, ask the threads to stop.
-      tf.logging.info('# success: %d', counters['success'])
-      tf.logging.info('# skipped: %d', counters['skipped'])
+      tf.compat.v1.logging.info('# success: %d', counters['success'])
+      tf.compat.v1.logging.info('# skipped: %d', counters['skipped'])
       all_evaluator_metrics = {}
       if eval_export_path and eval_export_path is not None:
         for evaluator in evaluators:
           if (isinstance(evaluator, coco_evaluation.CocoDetectionEvaluator) or
               isinstance(evaluator, coco_evaluation.CocoMaskEvaluator)):
-            tf.logging.info('Started dumping to json file.')
+            tf.compat.v1.logging.info('Started dumping to json file.')
             evaluator.dump_detections_to_json_file(
                 json_output_path=eval_export_path)
-            tf.logging.info('Finished dumping to json file.')
+            tf.compat.v1.logging.info('Finished dumping to json file.')
       for evaluator in evaluators:
         metrics = evaluator.evaluate()
         evaluator.clear()
         if any(key in all_evaluator_metrics for key in metrics):
           raise ValueError('Metric names between evaluators must not collide.')
         all_evaluator_metrics.update(metrics)
-      global_step = tf.train.global_step(sess, tf.train.get_global_step())
+      global_step = tf.compat.v1.train.global_step(sess, tf.compat.v1.train.get_global_step())
 
       for key, value in iter(aggregate_result_losses_dict.items()):
         all_evaluator_metrics['Losses/' + key] = np.mean(value)
@@ -452,14 +452,14 @@ def repeated_checkpoint_run(tensor_dict,
   number_of_evaluations = 0
   while True:
     start = time.time()
-    tf.logging.info('Starting evaluation at ' + time.strftime(
+    tf.compat.v1.logging.info('Starting evaluation at ' + time.strftime(
         '%Y-%m-%d-%H:%M:%S', time.gmtime()))
     model_path = tf.train.latest_checkpoint(checkpoint_dirs[0])
     if not model_path:
-      tf.logging.info('No model found in %s. Will try again in %d seconds',
+      tf.compat.v1.logging.info('No model found in %s. Will try again in %d seconds',
                       checkpoint_dirs[0], eval_interval_secs)
     elif model_path == last_evaluated_model_path:
-      tf.logging.info('Found already evaluated checkpoint. Will try again in '
+      tf.compat.v1.logging.info('Found already evaluated checkpoint. Will try again in '
                       '%d seconds', eval_interval_secs)
     else:
       last_evaluated_model_path = model_path
@@ -481,7 +481,7 @@ def repeated_checkpoint_run(tensor_dict,
 
     if (max_number_of_evaluations and
         number_of_evaluations >= max_number_of_evaluations):
-      tf.logging.info('Finished evaluation!')
+      tf.compat.v1.logging.info('Finished evaluation!')
       break
     time_to_next_eval = start + eval_interval_secs - time.time()
     if time_to_next_eval > 0:
@@ -506,11 +506,10 @@ def _resize_detection_masks(args):
 def _resize_groundtruth_masks(args):
   mask, image_shape = args
   mask = tf.expand_dims(mask, 3)
-  mask = tf.image.resize_images(
+  mask = tf.image.resize(
       mask,
       image_shape,
-      method=tf.image.ResizeMethod.NEAREST_NEIGHBOR,
-      align_corners=True)
+      method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
   return tf.cast(tf.squeeze(mask, 3), tf.uint8)
 
 
@@ -580,7 +579,7 @@ def result_dict_for_single_example(image,
 
   if groundtruth:
     max_gt_boxes = tf.shape(
-        groundtruth[fields.InputDataFields.groundtruth_boxes])[0]
+        input=groundtruth[fields.InputDataFields.groundtruth_boxes])[0]
     for gt_key in groundtruth:
       # expand groundtruth dict along the batch dimension.
       groundtruth[gt_key] = tf.expand_dims(groundtruth[gt_key], 0)
@@ -708,8 +707,8 @@ def result_dict_for_batched_example(images,
   input_data_fields = fields.InputDataFields
   if original_image_spatial_shapes is None:
     original_image_spatial_shapes = tf.tile(
-        tf.expand_dims(tf.shape(images)[1:3], axis=0),
-        multiples=[tf.shape(images)[0], 1])
+        tf.expand_dims(tf.shape(input=images)[1:3], axis=0),
+        multiples=[tf.shape(input=images)[0], 1])
   else:
     if (len(original_image_spatial_shapes.shape) != 2 and
         original_image_spatial_shapes.shape[1] != 2):
@@ -719,8 +718,8 @@ def result_dict_for_batched_example(images,
 
   if true_image_shapes is None:
     true_image_shapes = tf.tile(
-        tf.expand_dims(tf.shape(images)[1:4], axis=0),
-        multiples=[tf.shape(images)[0], 1])
+        tf.expand_dims(tf.shape(input=images)[1:4], axis=0),
+        multiples=[tf.shape(input=images)[0], 1])
   else:
     if (len(true_image_shapes.shape) != 2
         and true_image_shapes.shape[1] != 3):
@@ -741,13 +740,13 @@ def result_dict_for_batched_example(images,
   detection_fields = fields.DetectionResultFields
   detection_boxes = detections[detection_fields.detection_boxes]
   detection_scores = detections[detection_fields.detection_scores]
-  num_detections = tf.to_int32(detections[detection_fields.num_detections])
+  num_detections = tf.cast(detections[detection_fields.num_detections], dtype=tf.int32)
 
   if class_agnostic:
     detection_classes = tf.ones_like(detection_scores, dtype=tf.int64)
   else:
     detection_classes = (
-        tf.to_int64(detections[detection_fields.detection_classes]) +
+        tf.cast(detections[detection_fields.detection_classes], dtype=tf.int64) +
         label_id_offset)
 
   if scale_to_absolute:

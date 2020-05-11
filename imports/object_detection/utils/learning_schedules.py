@@ -51,13 +51,13 @@ def exponential_decay_with_burnin(global_step,
   """
   if burnin_learning_rate == 0:
     burnin_learning_rate = learning_rate_base
-  post_burnin_learning_rate = tf.train.exponential_decay(
+  post_burnin_learning_rate = tf.compat.v1.train.exponential_decay(
       learning_rate_base,
       global_step - burnin_steps,
       learning_rate_decay_steps,
       learning_rate_decay_factor,
       staircase=staircase)
-  return tf.maximum(tf.where(
+  return tf.maximum(tf.compat.v1.where(
       tf.less(tf.cast(global_step, tf.int32), tf.constant(burnin_steps)),
       tf.constant(burnin_learning_rate),
       post_burnin_learning_rate), min_learning_rate, name='learning_rate')
@@ -102,7 +102,7 @@ def cosine_decay_with_warmup(global_step,
       (tf.cast(global_step, tf.float32) - warmup_steps - hold_base_rate_steps
       ) / float(total_steps - warmup_steps - hold_base_rate_steps)))
   if hold_base_rate_steps > 0:
-    learning_rate = tf.where(global_step > warmup_steps + hold_base_rate_steps,
+    learning_rate = tf.compat.v1.where(global_step > warmup_steps + hold_base_rate_steps,
                              learning_rate, learning_rate_base)
   if warmup_steps > 0:
     if learning_rate_base < warmup_learning_rate:
@@ -111,9 +111,9 @@ def cosine_decay_with_warmup(global_step,
     slope = (learning_rate_base - warmup_learning_rate) / warmup_steps
     warmup_rate = slope * tf.cast(global_step,
                                   tf.float32) + warmup_learning_rate
-    learning_rate = tf.where(global_step < warmup_steps, warmup_rate,
+    learning_rate = tf.compat.v1.where(global_step < warmup_steps, warmup_rate,
                              learning_rate)
-  return tf.where(global_step > total_steps, 0.0, learning_rate,
+  return tf.compat.v1.where(global_step > total_steps, 0.0, learning_rate,
                   name='learning_rate')
 
 
@@ -168,8 +168,8 @@ def manual_stepping(global_step, boundaries, rates, warmup=False):
   else:
     boundaries = [0] + boundaries
   num_boundaries = len(boundaries)
-  rate_index = tf.reduce_max(tf.where(tf.greater_equal(global_step, boundaries),
+  rate_index = tf.reduce_max(input_tensor=tf.compat.v1.where(tf.greater_equal(global_step, boundaries),
                                       list(range(num_boundaries)),
                                       [0] * num_boundaries))
-  return tf.reduce_sum(rates * tf.one_hot(rate_index, depth=num_boundaries),
+  return tf.reduce_sum(input_tensor=rates * tf.one_hot(rate_index, depth=num_boundaries),
                        name='learning_rate')

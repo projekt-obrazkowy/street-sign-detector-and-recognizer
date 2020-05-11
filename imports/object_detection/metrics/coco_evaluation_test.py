@@ -236,12 +236,12 @@ class CocoEvaluationPyFuncTest(tf.test.TestCase):
   def testGetOneMAPWithMatchingGroundtruthAndDetections(self):
     coco_evaluator = coco_evaluation.CocoDetectionEvaluator(
         _get_categories_list())
-    image_id = tf.placeholder(tf.string, shape=())
-    groundtruth_boxes = tf.placeholder(tf.float32, shape=(None, 4))
-    groundtruth_classes = tf.placeholder(tf.float32, shape=(None))
-    detection_boxes = tf.placeholder(tf.float32, shape=(None, 4))
-    detection_scores = tf.placeholder(tf.float32, shape=(None))
-    detection_classes = tf.placeholder(tf.float32, shape=(None))
+    image_id = tf.compat.v1.placeholder(tf.string, shape=())
+    groundtruth_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 4))
+    groundtruth_classes = tf.compat.v1.placeholder(tf.float32, shape=(None))
+    detection_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 4))
+    detection_scores = tf.compat.v1.placeholder(tf.float32, shape=(None))
+    detection_classes = tf.compat.v1.placeholder(tf.float32, shape=(None))
 
     input_data_fields = standard_fields.InputDataFields
     detection_fields = standard_fields.DetectionResultFields
@@ -311,13 +311,13 @@ class CocoEvaluationPyFuncTest(tf.test.TestCase):
   def testGetOneMAPWithMatchingGroundtruthAndDetectionsIsAnnotated(self):
     coco_evaluator = coco_evaluation.CocoDetectionEvaluator(
         _get_categories_list())
-    image_id = tf.placeholder(tf.string, shape=())
-    groundtruth_boxes = tf.placeholder(tf.float32, shape=(None, 4))
-    groundtruth_classes = tf.placeholder(tf.float32, shape=(None))
-    is_annotated = tf.placeholder(tf.bool, shape=())
-    detection_boxes = tf.placeholder(tf.float32, shape=(None, 4))
-    detection_scores = tf.placeholder(tf.float32, shape=(None))
-    detection_classes = tf.placeholder(tf.float32, shape=(None))
+    image_id = tf.compat.v1.placeholder(tf.string, shape=())
+    groundtruth_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 4))
+    groundtruth_classes = tf.compat.v1.placeholder(tf.float32, shape=(None))
+    is_annotated = tf.compat.v1.placeholder(tf.bool, shape=())
+    detection_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 4))
+    detection_scores = tf.compat.v1.placeholder(tf.float32, shape=(None))
+    detection_classes = tf.compat.v1.placeholder(tf.float32, shape=(None))
 
     input_data_fields = standard_fields.InputDataFields
     detection_fields = standard_fields.DetectionResultFields
@@ -404,12 +404,12 @@ class CocoEvaluationPyFuncTest(tf.test.TestCase):
   def testGetOneMAPWithMatchingGroundtruthAndDetectionsPadded(self):
     coco_evaluator = coco_evaluation.CocoDetectionEvaluator(
         _get_categories_list())
-    image_id = tf.placeholder(tf.string, shape=())
-    groundtruth_boxes = tf.placeholder(tf.float32, shape=(None, 4))
-    groundtruth_classes = tf.placeholder(tf.float32, shape=(None))
-    detection_boxes = tf.placeholder(tf.float32, shape=(None, 4))
-    detection_scores = tf.placeholder(tf.float32, shape=(None))
-    detection_classes = tf.placeholder(tf.float32, shape=(None))
+    image_id = tf.compat.v1.placeholder(tf.string, shape=())
+    groundtruth_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 4))
+    groundtruth_classes = tf.compat.v1.placeholder(tf.float32, shape=(None))
+    detection_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 4))
+    detection_scores = tf.compat.v1.placeholder(tf.float32, shape=(None))
+    detection_classes = tf.compat.v1.placeholder(tf.float32, shape=(None))
 
     input_data_fields = standard_fields.InputDataFields
     detection_fields = standard_fields.DetectionResultFields
@@ -501,12 +501,12 @@ class CocoEvaluationPyFuncTest(tf.test.TestCase):
     coco_evaluator = coco_evaluation.CocoDetectionEvaluator(
         _get_categories_list())
     batch_size = 3
-    image_id = tf.placeholder(tf.string, shape=(batch_size))
-    groundtruth_boxes = tf.placeholder(tf.float32, shape=(batch_size, None, 4))
-    groundtruth_classes = tf.placeholder(tf.float32, shape=(batch_size, None))
-    detection_boxes = tf.placeholder(tf.float32, shape=(batch_size, None, 4))
-    detection_scores = tf.placeholder(tf.float32, shape=(batch_size, None))
-    detection_classes = tf.placeholder(tf.float32, shape=(batch_size, None))
+    image_id = tf.compat.v1.placeholder(tf.string, shape=(batch_size))
+    groundtruth_boxes = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None, 4))
+    groundtruth_classes = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None))
+    detection_boxes = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None, 4))
+    detection_scores = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None))
+    detection_classes = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None))
 
     input_data_fields = standard_fields.InputDataFields
     detection_fields = standard_fields.DetectionResultFields
@@ -563,14 +563,14 @@ class CocoEvaluationPyFuncTest(tf.test.TestCase):
     coco_evaluator = coco_evaluation.CocoDetectionEvaluator(
         _get_categories_list())
     batch_size = 3
-    image_id = tf.placeholder(tf.string, shape=(batch_size))
-    groundtruth_boxes = tf.placeholder(tf.float32, shape=(batch_size, None, 4))
-    groundtruth_classes = tf.placeholder(tf.float32, shape=(batch_size, None))
-    num_gt_boxes_per_image = tf.placeholder(tf.int32, shape=(None))
-    detection_boxes = tf.placeholder(tf.float32, shape=(batch_size, None, 4))
-    detection_scores = tf.placeholder(tf.float32, shape=(batch_size, None))
-    detection_classes = tf.placeholder(tf.float32, shape=(batch_size, None))
-    num_det_boxes_per_image = tf.placeholder(tf.int32, shape=(None))
+    image_id = tf.compat.v1.placeholder(tf.string, shape=(batch_size))
+    groundtruth_boxes = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None, 4))
+    groundtruth_classes = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None))
+    num_gt_boxes_per_image = tf.compat.v1.placeholder(tf.int32, shape=(None))
+    detection_boxes = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None, 4))
+    detection_scores = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None))
+    detection_classes = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None))
+    num_det_boxes_per_image = tf.compat.v1.placeholder(tf.int32, shape=(None))
 
     input_data_fields = standard_fields.InputDataFields
     detection_fields = standard_fields.DetectionResultFields
@@ -733,13 +733,13 @@ class CocoMaskEvaluationPyFuncTest(tf.test.TestCase):
 
   def testGetOneMAPWithMatchingGroundtruthAndDetections(self):
     coco_evaluator = coco_evaluation.CocoMaskEvaluator(_get_categories_list())
-    image_id = tf.placeholder(tf.string, shape=())
-    groundtruth_boxes = tf.placeholder(tf.float32, shape=(None, 4))
-    groundtruth_classes = tf.placeholder(tf.float32, shape=(None))
-    groundtruth_masks = tf.placeholder(tf.uint8, shape=(None, None, None))
-    detection_scores = tf.placeholder(tf.float32, shape=(None))
-    detection_classes = tf.placeholder(tf.float32, shape=(None))
-    detection_masks = tf.placeholder(tf.uint8, shape=(None, None, None))
+    image_id = tf.compat.v1.placeholder(tf.string, shape=())
+    groundtruth_boxes = tf.compat.v1.placeholder(tf.float32, shape=(None, 4))
+    groundtruth_classes = tf.compat.v1.placeholder(tf.float32, shape=(None))
+    groundtruth_masks = tf.compat.v1.placeholder(tf.uint8, shape=(None, None, None))
+    detection_scores = tf.compat.v1.placeholder(tf.float32, shape=(None))
+    detection_classes = tf.compat.v1.placeholder(tf.float32, shape=(None))
+    detection_masks = tf.compat.v1.placeholder(tf.uint8, shape=(None, None, None))
 
     input_data_fields = standard_fields.InputDataFields
     detection_fields = standard_fields.DetectionResultFields
@@ -849,14 +849,14 @@ class CocoMaskEvaluationPyFuncTest(tf.test.TestCase):
   def testGetOneMAPWithMatchingGroundtruthAndDetectionsBatched(self):
     coco_evaluator = coco_evaluation.CocoMaskEvaluator(_get_categories_list())
     batch_size = 3
-    image_id = tf.placeholder(tf.string, shape=(batch_size))
-    groundtruth_boxes = tf.placeholder(tf.float32, shape=(batch_size, None, 4))
-    groundtruth_classes = tf.placeholder(tf.float32, shape=(batch_size, None))
-    groundtruth_masks = tf.placeholder(
+    image_id = tf.compat.v1.placeholder(tf.string, shape=(batch_size))
+    groundtruth_boxes = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None, 4))
+    groundtruth_classes = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None))
+    groundtruth_masks = tf.compat.v1.placeholder(
         tf.uint8, shape=(batch_size, None, None, None))
-    detection_scores = tf.placeholder(tf.float32, shape=(batch_size, None))
-    detection_classes = tf.placeholder(tf.float32, shape=(batch_size, None))
-    detection_masks = tf.placeholder(
+    detection_scores = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None))
+    detection_classes = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, None))
+    detection_masks = tf.compat.v1.placeholder(
         tf.uint8, shape=(batch_size, None, None, None))
 
     input_data_fields = standard_fields.InputDataFields

@@ -70,4 +70,4 @@ def main(_):
         'dataset_name [%s] was not recognized.' % FLAGS.dataset_name)
 
 if __name__ == '__main__':
-  tf.app.run()
+  tf.compat.v1.app.run()

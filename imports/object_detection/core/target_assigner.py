@@ -183,8 +183,8 @@ class TargetAssigner(object):
       cls_weights = self._create_classification_weights(match,
                                                         groundtruth_weights)
       # convert cls_weights from per-anchor to per-class.
-      class_label_shape = tf.shape(cls_targets)[1:]
-      weights_shape = tf.shape(cls_weights)
+      class_label_shape = tf.shape(input=cls_targets)[1:]
+      weights_shape = tf.shape(input=cls_weights)
       weights_multiple = tf.concat(
           [tf.ones_like(weights_shape), class_label_shape],
           axis=0)
@@ -250,7 +250,7 @@ class TargetAssigner(object):
     unmatched_ignored_reg_targets = tf.tile(
         self._default_regression_target(), [match_results_shape[0], 1])
     matched_anchors_mask = match.matched_column_indicator()
-    reg_targets = tf.where(matched_anchors_mask,
+    reg_targets = tf.compat.v1.where(matched_anchors_mask,
                            matched_reg_targets,
                            unmatched_ignored_reg_targets)
     return reg_targets
@@ -595,17 +595,17 @@ def batch_assign_confidences(target_assigner,
     positive_mask = tf.greater(cls_targets_without_background, 0.0)
     negative_mask = tf.less(cls_targets_without_background, 0.0)
     explicit_example_mask = tf.logical_or(positive_mask, negative_mask)
-    positive_anchors = tf.reduce_any(positive_mask, axis=-1)
+    positive_anchors = tf.reduce_any(input_tensor=positive_mask, axis=-1)
 
-    regression_weights = tf.to_float(positive_anchors)
+    regression_weights = tf.cast(positive_anchors, dtype=tf.float32)
     regression_targets = (
         reg_targets * tf.expand_dims(regression_weights, axis=-1))
     regression_weights_expanded = tf.expand_dims(regression_weights, axis=-1)
 
     cls_targets_without_background = (
-        cls_targets_without_background * (1 - tf.to_float(negative_mask)))
+        cls_targets_without_background * (1 - tf.cast(negative_mask, dtype=tf.float32)))
     cls_weights_without_background = (
-        (1 - implicit_class_weight) * tf.to_float(explicit_example_mask)
+        (1 - implicit_class_weight) * tf.cast(explicit_example_mask, dtype=tf.float32)
         + implicit_class_weight)
 
     if include_background_class:

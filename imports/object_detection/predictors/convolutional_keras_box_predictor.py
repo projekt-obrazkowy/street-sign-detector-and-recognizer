@@ -143,7 +143,7 @@ class ConvolutionalBoxPredictor(box_predictor.KerasBoxPredictor):
       # Add additional conv layers before the class predictor.
       features_depth = static_shape.get_depth(input_shape)
       depth = max(min(features_depth, self._max_depth), self._min_depth)
-      tf.logging.info(
+      tf.compat.v1.logging.info(
           'depth of additional conv before box predictor: {}'.format(depth))
 
       if depth > 0 and self._num_layers_before_predictor > 0:

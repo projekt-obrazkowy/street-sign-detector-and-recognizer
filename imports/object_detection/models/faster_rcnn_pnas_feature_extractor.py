@@ -104,7 +104,7 @@ def _build_pnasnet_base(
   # Final nonlinearity.
   # Note that we have dropped the final pooling, dropout and softmax layers
   # from the default pnasnet version.
-  with tf.variable_scope('final_layer'):
+  with tf.compat.v1.variable_scope('final_layer'):
     net = tf.nn.relu(net)
   return net
 
@@ -302,7 +302,7 @@ class FasterRCNNPNASFeatureExtractor(
       the model graph.
     """
     variables_to_restore = {}
-    for variable in tf.global_variables():
+    for variable in tf.compat.v1.global_variables():
       if variable.op.name.startswith(
           first_stage_feature_extractor_scope):
         var_name = variable.op.name.replace(

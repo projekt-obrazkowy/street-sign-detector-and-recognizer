@@ -111,7 +111,7 @@ class SSDMobileNetV2FeatureExtractor(ssd_meta_arch.SSDFeatureExtractor):
         'use_explicit_padding': self._use_explicit_padding,
     }
 
-    with tf.variable_scope('MobilenetV2', reuse=self._reuse_weights) as scope:
+    with tf.compat.v1.variable_scope('MobilenetV2', reuse=self._reuse_weights) as scope:
       with slim.arg_scope(
           mobilenet_v2.training_scope(is_training=None, bn_decay=0.9997)), \
           slim.arg_scope(

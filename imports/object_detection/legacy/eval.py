@@ -53,7 +53,7 @@ from object_detection.legacy import evaluator
 from object_detection.utils import config_util
 from object_detection.utils import label_map_util
 
-tf.logging.set_verbosity(tf.logging.INFO)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 
 flags = tf.app.flags
 flags.DEFINE_boolean('eval_training_data', False,
@@ -84,11 +84,11 @@ FLAGS = flags.FLAGS
 def main(unused_argv):
   assert FLAGS.checkpoint_dir, '`checkpoint_dir` is missing.'
   assert FLAGS.eval_dir, '`eval_dir` is missing.'
-  tf.gfile.MakeDirs(FLAGS.eval_dir)
+  tf.io.gfile.makedirs(FLAGS.eval_dir)
   if FLAGS.pipeline_config_path:
     configs = config_util.get_configs_from_pipeline_file(
         FLAGS.pipeline_config_path)
-    tf.gfile.Copy(
+    tf.io.gfile.copy(
         FLAGS.pipeline_config_path,
         os.path.join(FLAGS.eval_dir, 'pipeline.config'),
         overwrite=True)
@@ -100,7 +100,7 @@ def main(unused_argv):
     for name, config in [('model.config', FLAGS.model_config_path),
                          ('eval.config', FLAGS.eval_config_path),
                          ('input.config', FLAGS.input_config_path)]:
-      tf.gfile.Copy(config, os.path.join(FLAGS.eval_dir, name), overwrite=True)
+      tf.io.gfile.copy(config, os.path.join(FLAGS.eval_dir, name), overwrite=True)
 
   model_config = configs['model']
   eval_config = configs['eval_config']
@@ -112,8 +112,8 @@ def main(unused_argv):
       model_builder.build, model_config=model_config, is_training=False)
 
   def get_next(config):
-    return dataset_builder.make_initializable_iterator(
-        dataset_builder.build(config)).get_next()
+    return tf.compat.v1.data.make_initializable_iterator(
+        dataset_builder, dataset_builder.build(config)).get_next()
 
   create_input_dict_fn = functools.partial(get_next, input_config)
 
@@ -139,4 +139,4 @@ def main(unused_argv):
 
 
 if __name__ == '__main__':
-  tf.app.run()
+  tf.compat.v1.app.run()

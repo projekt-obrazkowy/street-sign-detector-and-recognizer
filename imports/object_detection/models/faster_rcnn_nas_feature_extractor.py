@@ -103,7 +103,7 @@ def _build_nasnet_base(hidden_previous,
   # Final nonlinearity.
   # Note that we have dropped the final pooling, dropout and softmax layers
   # from the default nasnet version.
-  with tf.variable_scope('final_layer'):
+  with tf.compat.v1.variable_scope('final_layer'):
     net = tf.nn.relu(net)
   return net
 
@@ -307,7 +307,7 @@ class FasterRCNNNASFeatureExtractor(
     # Note that the NAS checkpoint only contains the moving average version of
     # the Variables so we need to generate an appropriate dictionary mapping.
     variables_to_restore = {}
-    for variable in tf.global_variables():
+    for variable in tf.compat.v1.global_variables():
       if variable.op.name.startswith(
           first_stage_feature_extractor_scope):
         var_name = variable.op.name.replace(

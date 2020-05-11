@@ -121,8 +121,8 @@ class EmbeddedSSDMobileNetV1FeatureExtractor(ssd_meta_arch.SSDFeatureExtractor):
 
     if image_height is None or image_width is None:
       shape_assert = tf.Assert(
-          tf.logical_and(tf.equal(tf.shape(preprocessed_inputs)[1], 256),
-                         tf.equal(tf.shape(preprocessed_inputs)[2], 256)),
+          tf.logical_and(tf.equal(tf.shape(input=preprocessed_inputs)[1], 256),
+                         tf.equal(tf.shape(input=preprocessed_inputs)[2], 256)),
           ['image size must be 256 in both height and width.'])
       with tf.control_dependencies([shape_assert]):
         preprocessed_inputs = tf.identity(preprocessed_inputs)
@@ -140,7 +140,7 @@ class EmbeddedSSDMobileNetV1FeatureExtractor(ssd_meta_arch.SSDFeatureExtractor):
         'use_depthwise': self._use_depthwise,
     }
 
-    with tf.variable_scope('MobilenetV1',
+    with tf.compat.v1.variable_scope('MobilenetV1',
                            reuse=self._reuse_weights) as scope:
       with slim.arg_scope(
           mobilenet_v1.mobilenet_v1_arg_scope(is_training=None)):

@@ -437,7 +437,7 @@ def fpn_top_down_feature_maps(image_features,
     feature_maps: an OrderedDict mapping keys (feature map names) to
       tensors where each tensor has shape [batch, height_i, width_i, depth_i].
   """
-  with tf.name_scope(scope, 'top_down'):
+  with tf.compat.v1.name_scope(scope, 'top_down'):
     num_levels = len(image_features)
     output_feature_maps_list = []
     output_feature_map_keys = []
@@ -461,7 +461,7 @@ def fpn_top_down_feature_maps(image_features,
             scope='projection_%d' % (level + 1))
         if use_explicit_padding:
           # slice top_down to the same shape as residual
-          residual_shape = tf.shape(residual)
+          residual_shape = tf.shape(input=residual)
           top_down = top_down[:, :residual_shape[1], :residual_shape[2], :]
         top_down += residual
         if use_depthwise:

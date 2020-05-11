@@ -89,7 +89,7 @@ def main(_):
   if not FLAGS.dataset_dir:
     raise ValueError('You must supply the dataset directory with --dataset_dir')
 
-  tf.logging.set_verbosity(tf.logging.INFO)
+  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
   with tf.Graph().as_default():
     tf_global_step = slim.get_or_create_global_step()
 
@@ -130,7 +130,7 @@ def main(_):
 
     image = image_preprocessing_fn(image, eval_image_size, eval_image_size)
 
-    images, labels = tf.train.batch(
+    images, labels = tf.compat.v1.train.batch(
         [image, label],
         batch_size=FLAGS.batch_size,
         num_threads=FLAGS.num_preprocessing_threads,
@@ -153,7 +153,7 @@ def main(_):
     else:
       variables_to_restore = slim.get_variables_to_restore()
 
-    predictions = tf.argmax(logits, 1)
+    predictions = tf.argmax(input=logits, axis=1)
     labels = tf.squeeze(labels)
 
     # Define the metrics:
@@ -166,9 +166,9 @@ def main(_):
     # Print the summaries to screen.
     for name, value in names_to_values.items():
       summary_name = 'eval/%s' % name
-      op = tf.summary.scalar(summary_name, value, collections=[])
-      op = tf.Print(op, [value], summary_name)
-      tf.add_to_collection(tf.GraphKeys.SUMMARIES, op)
+      op = tf.compat.v1.summary.scalar(summary_name, value, collections=[])
+      op = tf.compat.v1.Print(op, [value], summary_name)
+      tf.compat.v1.add_to_collection(tf.compat.v1.GraphKeys.SUMMARIES, op)
 
     # TODO(sguada) use num_epochs=1
     if FLAGS.max_num_batches:
@@ -177,12 +177,12 @@ def main(_):
       # This ensures that we make a single pass over all of the data.
       num_batches = math.ceil(dataset.num_samples / float(FLAGS.batch_size))
 
-    if tf.gfile.IsDirectory(FLAGS.checkpoint_path):
+    if tf.io.gfile.isdir(FLAGS.checkpoint_path):
       checkpoint_path = tf.train.latest_checkpoint(FLAGS.checkpoint_path)
     else:
       checkpoint_path = FLAGS.checkpoint_path
 
-    tf.logging.info('Evaluating %s' % checkpoint_path)
+    tf.compat.v1.logging.info('Evaluating %s' % checkpoint_path)
 
     slim.evaluation.evaluate_once(
         master=FLAGS.master,
@@ -194,4 +194,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-  tf.app.run()
+  tf.compat.v1.app.run()

@@ -53,16 +53,16 @@ class GreedyBipartiteMatcher(matcher.Matcher):
         row match_results[i].
     """
     valid_row_sim_matrix = tf.gather(similarity_matrix,
-                                     tf.squeeze(tf.where(valid_rows), axis=-1))
+                                     tf.squeeze(tf.compat.v1.where(valid_rows), axis=-1))
     invalid_row_sim_matrix = tf.gather(
         similarity_matrix,
-        tf.squeeze(tf.where(tf.logical_not(valid_rows)), axis=-1))
+        tf.squeeze(tf.compat.v1.where(tf.logical_not(valid_rows)), axis=-1))
     similarity_matrix = tf.concat(
         [valid_row_sim_matrix, invalid_row_sim_matrix], axis=0)
     # Convert similarity matrix to distance matrix as tf.image.bipartite tries
     # to find minimum distance matches.
     distance_matrix = -1 * similarity_matrix
-    num_valid_rows = tf.reduce_sum(tf.to_float(valid_rows))
+    num_valid_rows = tf.reduce_sum(input_tensor=tf.cast(valid_rows, dtype=tf.float32))
     _, match_results = image_ops.bipartite_match(
         distance_matrix, num_valid_rows=num_valid_rows)
     match_results = tf.reshape(match_results, [-1])

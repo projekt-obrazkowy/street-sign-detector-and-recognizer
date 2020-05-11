@@ -98,7 +98,7 @@ class BoxPredictor(object):
                        format(len(image_features),
                               len(num_predictions_per_location)))
     if scope is not None:
-      with tf.variable_scope(scope):
+      with tf.compat.v1.variable_scope(scope):
         return self._predict(image_features, num_predictions_per_location,
                              **params)
     return self._predict(image_features, num_predictions_per_location,

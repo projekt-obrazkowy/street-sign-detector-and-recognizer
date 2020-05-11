@@ -62,7 +62,7 @@ def create_input_queue(batch_size_per_clone, create_tensor_dict_fn,
       tensor_dict[fields.InputDataFields.image], 0)
 
   images = tensor_dict[fields.InputDataFields.image]
-  float_images = tf.to_float(images)
+  float_images = tf.cast(images, dtype=tf.float32)
   tensor_dict[fields.InputDataFields.image] = float_images
 
   include_instance_masks = (fields.InputDataFields.groundtruth_instance_masks
@@ -205,7 +205,7 @@ def _create_losses(input_queue, create_model_fn, train_config):
 
   losses_dict = detection_model.loss(prediction_dict, true_image_shapes)
   for loss_tensor in losses_dict.values():
-    tf.losses.add_loss(loss_tensor)
+    tf.compat.v1.losses.add_loss(loss_tensor)
 
 
 def train(create_tensor_dict_fn,
@@ -282,7 +282,7 @@ def train(create_tensor_dict_fn,
     # Gather initial summaries.
     # TODO(rathodv): See if summaries can be added/extracted from global tf
     # collections so that they don't have to be passed around.
-    summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
+    summaries = set(tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.SUMMARIES))
     global_summaries = set([])
 
     model_fn = functools.partial(_create_losses,
@@ -297,17 +297,17 @@ def train(create_tensor_dict_fn,
 
     # Gather update_ops from the first clone. These contain, for example,
     # the updates for the batch_norm variables created by model_fn.
-    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS, first_clone_scope)
+    update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS, first_clone_scope)
 
     with tf.device(deploy_config.optimizer_device()):
       training_optimizer, optimizer_summary_vars = optimizer_builder.build(
           train_config.optimizer)
       for var in optimizer_summary_vars:
-        tf.summary.scalar(var.op.name, var, family='LearningRate')
+        tf.compat.v1.summary.scalar(var.op.name, var, family='LearningRate')
 
     sync_optimizer = None
     if train_config.sync_replicas:
-      training_optimizer = tf.train.SyncReplicasOptimizer(
+      training_optimizer = tf.compat.v1.train.SyncReplicasOptimizer(
           training_optimizer,
           replicas_to_aggregate=train_config.replicas_to_aggregate,
           total_num_replicas=worker_replicas)
@@ -319,7 +319,7 @@ def train(create_tensor_dict_fn,
       total_loss, grads_and_vars = model_deploy.optimize_clones(
           clones, training_optimizer,
           regularization_losses=regularization_losses)
-      total_loss = tf.check_numerics(total_loss, 'LossTensor is inf or nan.')
+      total_loss = tf.debugging.check_numerics(total_loss, 'LossTensor is inf or nan.')
 
       # Optionally multiply bias gradients by train_config.bias_grad_multiplier.
       if train_config.bias_grad_multiplier:
@@ -336,7 +336,7 @@ def train(create_tensor_dict_fn,
 
       # Optionally clip gradients
       if train_config.gradient_clipping_by_norm > 0:
-        with tf.name_scope('clip_grads'):
+        with tf.compat.v1.name_scope('clip_grads'):
           grads_and_vars = slim.learning.clip_gradient_norms(
               grads_and_vars, train_config.gradient_clipping_by_norm)
 
@@ -350,30 +350,30 @@ def train(create_tensor_dict_fn,
 
     # Add summaries.
     for model_var in slim.get_model_variables():
-      global_summaries.add(tf.summary.histogram('ModelVars/' +
+      global_summaries.add(tf.compat.v1.summary.histogram('ModelVars/' +
                                                 model_var.op.name, model_var))
-    for loss_tensor in tf.losses.get_losses():
-      global_summaries.add(tf.summary.scalar('Losses/' + loss_tensor.op.name,
+    for loss_tensor in tf.compat.v1.losses.get_losses():
+      global_summaries.add(tf.compat.v1.summary.scalar('Losses/' + loss_tensor.op.name,
                                              loss_tensor))
     global_summaries.add(
-        tf.summary.scalar('Losses/TotalLoss', tf.losses.get_total_loss()))
+        tf.compat.v1.summary.scalar('Losses/TotalLoss', tf.compat.v1.losses.get_total_loss()))
 
     # Add the summaries from the first clone. These contain the summaries
     # created by model_fn and either optimize_clones() or _gather_clone_loss().
-    summaries |= set(tf.get_collection(tf.GraphKeys.SUMMARIES,
+    summaries |= set(tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.SUMMARIES,
                                        first_clone_scope))
     summaries |= global_summaries
 
     # Merge all summaries together.
-    summary_op = tf.summary.merge(list(summaries), name='summary_op')
+    summary_op = tf.compat.v1.summary.merge(list(summaries), name='summary_op')
 
     # Soft placement allows placing on CPU ops without GPU implementation.
-    session_config = tf.ConfigProto(allow_soft_placement=True,
+    session_config = tf.compat.v1.ConfigProto(allow_soft_placement=True,
                                     log_device_placement=False)
 
     # Save checkpoints regularly.
     keep_checkpoint_every_n_hours = train_config.keep_checkpoint_every_n_hours
-    saver = tf.train.Saver(
+    saver = tf.compat.v1.train.Saver(
         keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours)
 
     # Create ops required to initialize the model from a given checkpoint.
@@ -395,7 +395,7 @@ def train(create_tensor_dict_fn,
                            get_variables_available_in_checkpoint(
                                var_map, train_config.fine_tune_checkpoint,
                                include_global_step=False))
-      init_saver = tf.train.Saver(available_var_map)
+      init_saver = tf.compat.v1.train.Saver(available_var_map)
       def initializer_fn(sess):
         init_saver.restore(sess, train_config.fine_tune_checkpoint)
       init_fn = initializer_fn

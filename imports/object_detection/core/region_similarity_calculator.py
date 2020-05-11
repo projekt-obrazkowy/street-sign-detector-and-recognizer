@@ -48,7 +48,7 @@ class RegionSimilarityCalculator(object):
     Returns:
       a (float32) tensor of shape [N, M] with pairwise similarity score.
     """
-    with tf.name_scope(scope, 'Compare', [boxlist1, boxlist2]) as scope:
+    with tf.compat.v1.name_scope(scope, 'Compare', [boxlist1, boxlist2]) as scope:
       return self._compare(boxlist1, boxlist2)
 
   @abstractmethod
@@ -147,8 +147,8 @@ class ThresholdedIouSimilarity(RegionSimilarityCalculator):
     ious = box_list_ops.iou(boxlist1, boxlist2)
     scores = boxlist1.get_field(fields.BoxListFields.scores)
     scores = tf.expand_dims(scores, axis=1)
-    row_replicated_scores = tf.tile(scores, [1, tf.shape(ious)[-1]])
-    thresholded_ious = tf.where(ious > self._iou_threshold,
+    row_replicated_scores = tf.tile(scores, [1, tf.shape(input=ious)[-1]])
+    thresholded_ious = tf.compat.v1.where(ious > self._iou_threshold,
                                 row_replicated_scores, tf.zeros_like(ious))
 
     return thresholded_ious

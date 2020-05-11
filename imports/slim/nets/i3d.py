@@ -30,7 +30,7 @@ from nets import i3d_utils
 from nets import s3dg
 
 slim = tf.contrib.slim
-trunc_normal = lambda stddev: tf.truncated_normal_initializer(0.0, stddev)
+trunc_normal = lambda stddev: tf.compat.v1.truncated_normal_initializer(0.0, stddev)
 conv3d_spatiotemporal = i3d_utils.conv3d_spatiotemporal
 
 
@@ -71,7 +71,7 @@ def i3d_arg_scope(weight_decay=1e-7,
 
   with slim.arg_scope(
       [slim.conv3d, conv3d_spatiotemporal],
-      weights_regularizer=slim.l2_regularizer(weight_decay),
+      weights_regularizer=tf.keras.regularizers.l2(0.5 * (weight_decay)),
       activation_fn=tf.nn.relu,
       normalizer_fn=slim.batch_norm,
       normalizer_params=batch_norm_params):
@@ -148,12 +148,12 @@ def i3d(inputs,
       activation.
   """
   # Final pooling and prediction
-  with tf.variable_scope(
+  with tf.compat.v1.variable_scope(
       scope, 'InceptionV1', [inputs, num_classes], reuse=reuse) as scope:
     with slim.arg_scope(
         [slim.batch_norm, slim.dropout], is_training=is_training):
       net, end_points = i3d_base(inputs, scope=scope)
-      with tf.variable_scope('Logits'):
+      with tf.compat.v1.variable_scope('Logits'):
         kernel_size = i3d_utils.reduced_kernel_size_3d(net, [2, 7, 7])
         net = slim.avg_pool3d(
             net, kernel_size, stride=1, scope='AvgPool_0a_7x7')
@@ -165,7 +165,7 @@ def i3d(inputs,
             normalizer_fn=None,
             scope='Conv2d_0c_1x1')
         # Temporal average pooling.
-        logits = tf.reduce_mean(logits, axis=1)
+        logits = tf.reduce_mean(input_tensor=logits, axis=1)
         if spatial_squeeze:
           logits = tf.squeeze(logits, [1, 2], name='SpatialSqueeze')
 

@@ -118,7 +118,7 @@ class ConvolutionalClassHead(head.KerasHead):
               [self._kernel_size, self._kernel_size],
               padding='SAME',
               name='ClassPredictor',
-              bias_initializer=tf.constant_initializer(
+              bias_initializer=tf.compat.v1.constant_initializer(
                   self._class_prediction_bias_init),
               **conv_hyperparams.params(use_bias=True)))
 
@@ -141,7 +141,7 @@ class ConvolutionalClassHead(head.KerasHead):
           class_predictions_with_background)
     batch_size = features.get_shape().as_list()[0]
     if batch_size is None:
-      batch_size = tf.shape(features)[0]
+      batch_size = tf.shape(input=features)[0]
     class_predictions_with_background = tf.reshape(
         class_predictions_with_background,
         [batch_size, -1, self._num_class_slots])

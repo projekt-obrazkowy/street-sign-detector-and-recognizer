@@ -27,8 +27,8 @@ class ImageResizerBuilderTest(tf.test.TestCase):
     image_resizer_config = image_resizer_pb2.ImageResizer()
     text_format.Merge(text_proto, image_resizer_config)
     image_resizer_fn = image_resizer_builder.build(image_resizer_config)
-    images = tf.to_float(
-        tf.random_uniform(input_shape, minval=0, maxval=255, dtype=tf.int32))
+    images = tf.cast(
+        tf.random.uniform(input_shape, minval=0, maxval=255, dtype=tf.int32), dtype=tf.float32)
     resized_images, _ = image_resizer_fn(images)
     with self.test_session() as sess:
       return sess.run(resized_images).shape
@@ -113,7 +113,7 @@ class ImageResizerBuilderTest(tf.test.TestCase):
     image_resizer_config = image_resizer_pb2.ImageResizer()
     text_format.Merge(text_proto, image_resizer_config)
     image_resizer_fn = image_resizer_builder.build(image_resizer_config)
-    image_placeholder = tf.placeholder(tf.uint8, [1, None, None, 3])
+    image_placeholder = tf.compat.v1.placeholder(tf.uint8, [1, None, None, 3])
     resized_image, _ = image_resizer_fn(image_placeholder)
     with self.test_session() as sess:
       return sess.run(resized_image, feed_dict={image_placeholder: image})

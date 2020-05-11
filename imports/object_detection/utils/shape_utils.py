@@ -62,12 +62,12 @@ def pad_tensor(t, length):
       statically.
   """
   t_rank = tf.rank(t)
-  t_shape = tf.shape(t)
+  t_shape = tf.shape(input=t)
   t_d0 = t_shape[0]
   pad_d0 = tf.expand_dims(length - t_d0, 0)
   pad_shape = tf.cond(
-      tf.greater(t_rank, 1), lambda: tf.concat([pad_d0, t_shape[1:]], 0),
-      lambda: tf.expand_dims(length - t_d0, 0))
+      pred=tf.greater(t_rank, 1), true_fn=lambda: tf.concat([pad_d0, t_shape[1:]], 0),
+      false_fn=lambda: tf.expand_dims(length - t_d0, 0))
   padded_t = tf.concat([t, tf.zeros(pad_shape, dtype=t.dtype)], 0)
   if not _is_tensor(length):
     padded_t = _set_dim_0(padded_t, length)
@@ -120,9 +120,9 @@ def pad_or_clip_nd(tensor, output_shape):
   Returns:
     Input tensor padded and clipped to the output shape.
   """
-  tensor_shape = tf.shape(tensor)
+  tensor_shape = tf.shape(input=tensor)
   clip_size = [
-      tf.where(tensor_shape[i] - shape > 0, shape, -1)
+      tf.compat.v1.where(tensor_shape[i] - shape > 0, shape, -1)
       if shape is not None else -1 for i, shape in enumerate(output_shape)
   ]
   clipped_tensor = tf.slice(
@@ -132,7 +132,7 @@ def pad_or_clip_nd(tensor, output_shape):
 
   # Pad tensor if the shape of clipped tensor is smaller than the expected
   # shape.
-  clipped_tensor_shape = tf.shape(clipped_tensor)
+  clipped_tensor_shape = tf.shape(input=clipped_tensor)
   trailing_paddings = [
       shape - clipped_tensor_shape[i] if shape is not None else 0
       for i, shape in enumerate(output_shape)
@@ -143,7 +143,7 @@ def pad_or_clip_nd(tensor, output_shape):
           trailing_paddings
       ],
       axis=1)
-  padded_tensor = tf.pad(clipped_tensor, paddings=paddings)
+  padded_tensor = tf.pad(tensor=clipped_tensor, paddings=paddings)
   output_static_shape = [
       dim if not isinstance(dim, tf.Tensor) else None for dim in output_shape
   ]
@@ -164,7 +164,7 @@ def combined_static_and_dynamic_shape(tensor):
     A list of size tensor.shape.ndims containing integers or a scalar tensor.
   """
   static_tensor_shape = tensor.shape.as_list()
-  dynamic_tensor_shape = tf.shape(tensor)
+  dynamic_tensor_shape = tf.shape(input=tensor)
   combined_shape = []
   for index, dim in enumerate(static_tensor_shape):
     if dim is not None:
@@ -272,8 +272,8 @@ def check_min_image_dim(min_dim, image_tensor):
   image_width = static_shape.get_width(image_shape)
   if image_height is None or image_width is None:
     shape_assert = tf.Assert(
-        tf.logical_and(tf.greater_equal(tf.shape(image_tensor)[1], min_dim),
-                       tf.greater_equal(tf.shape(image_tensor)[2], min_dim)),
+        tf.logical_and(tf.greater_equal(tf.shape(input=image_tensor)[1], min_dim),
+                       tf.greater_equal(tf.shape(input=image_tensor)[2], min_dim)),
         ['image size must be >= {} in both height and width.'.format(min_dim)])
     with tf.control_dependencies([shape_assert]):
       return tf.identity(image_tensor)
@@ -312,7 +312,7 @@ def assert_shape_equal(shape_a, shape_b):
       raise ValueError('Unequal shapes {}, {}'.format(shape_a, shape_b))
     else: return tf.no_op()
   else:
-    return tf.assert_equal(shape_a, shape_b)
+    return tf.compat.v1.assert_equal(shape_a, shape_b)
 
 
 def assert_shape_equal_along_first_dimension(shape_a, shape_b):
@@ -341,7 +341,7 @@ def assert_shape_equal_along_first_dimension(shape_a, shape_b):
           shape_a[0], shape_b[0]))
     else: return tf.no_op()
   else:
-    return tf.assert_equal(shape_a[0], shape_b[0])
+    return tf.compat.v1.assert_equal(shape_a[0], shape_b[0])
 
 
 def assert_box_normalized(boxes, maximum_normalized_coordinate=1.1):
@@ -358,8 +358,8 @@ def assert_box_normalized(boxes, maximum_normalized_coordinate=1.1):
   Raises:
     ValueError: When the input box tensor is not normalized.
   """
-  box_minimum = tf.reduce_min(boxes)
-  box_maximum = tf.reduce_max(boxes)
+  box_minimum = tf.reduce_min(input_tensor=boxes)
+  box_maximum = tf.reduce_max(input_tensor=boxes)
   return tf.Assert(
       tf.logical_and(
           tf.less_equal(box_maximum, maximum_normalized_coordinate),

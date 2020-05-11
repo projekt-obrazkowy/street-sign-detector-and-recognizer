@@ -90,7 +90,7 @@ class MaskRCNNBoxHead(head.Head):
     if num_predictions_per_location != 1:
       raise ValueError('Only num_predictions_per_location=1 is supported')
     spatial_averaged_roi_pooled_features = tf.reduce_mean(
-        features, [1, 2], keep_dims=True, name='AvgPool')
+        input_tensor=features, axis=[1, 2], keepdims=True, name='AvgPool')
     flattened_roi_pooled_features = slim.flatten(
         spatial_averaged_roi_pooled_features)
     if self._use_dropout:
@@ -179,7 +179,7 @@ class ConvolutionalBoxHead(head.Head):
           scope='BoxEncodingPredictor')
     batch_size = features.get_shape().as_list()[0]
     if batch_size is None:
-      batch_size = tf.shape(features)[0]
+      batch_size = tf.shape(input=features)[0]
     box_encodings = tf.reshape(box_encodings,
                                [batch_size, -1, 1, self._box_code_size])
     return box_encodings
@@ -242,7 +242,7 @@ class WeightSharedConvolutionalBoxHead(head.Head):
         scope='BoxPredictor')
     batch_size = features.get_shape().as_list()[0]
     if batch_size is None:
-      batch_size = tf.shape(features)[0]
+      batch_size = tf.shape(input=features)[0]
     # Clipping the box encodings to make the inference graph TPU friendly.
     if self._box_encodings_clip_range is not None:
       box_encodings = tf.clip_by_value(

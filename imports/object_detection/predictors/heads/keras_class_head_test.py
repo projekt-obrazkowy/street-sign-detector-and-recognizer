@@ -53,7 +53,7 @@ class ConvolutionalKerasClassPredictorTest(test_case.TestCase):
         freeze_batchnorm=False,
         num_predictions_per_location=1,
         use_depthwise=False)
-    image_feature = tf.random_uniform(
+    image_feature = tf.random.uniform(
         [64, 17, 19, 1024], minval=-10.0, maxval=10.0, dtype=tf.float32)
     class_predictions = class_prediction_head(image_feature,)
     self.assertAllEqual([64, 323, 20],

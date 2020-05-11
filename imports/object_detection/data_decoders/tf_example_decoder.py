@@ -116,7 +116,7 @@ class _BackupHandler(slim_example_decoder.ItemHandler):
   def tensors_to_item(self, keys_to_tensors):
     item = self._handler.tensors_to_item(keys_to_tensors)
     return tf.cond(
-        pred=tf.equal(tf.reduce_prod(tf.shape(item)), 0),
+        pred=tf.equal(tf.reduce_prod(input_tensor=tf.shape(input=item)), 0),
         true_fn=lambda: self._backup.tensors_to_item(keys_to_tensors),
         false_fn=lambda: item)
 
@@ -164,47 +164,47 @@ class TfExampleDecoder(data_decoder.DataDecoder):
     del use_display_name
     self.keys_to_features = {
         'image/encoded':
-            tf.FixedLenFeature((), tf.string, default_value=''),
+            tf.io.FixedLenFeature((), tf.string, default_value=''),
         'image/format':
-            tf.FixedLenFeature((), tf.string, default_value='jpeg'),
+            tf.io.FixedLenFeature((), tf.string, default_value='jpeg'),
         'image/filename':
-            tf.FixedLenFeature((), tf.string, default_value=''),
+            tf.io.FixedLenFeature((), tf.string, default_value=''),
         'image/key/sha256':
-            tf.FixedLenFeature((), tf.string, default_value=''),
+            tf.io.FixedLenFeature((), tf.string, default_value=''),
         'image/source_id':
-            tf.FixedLenFeature((), tf.string, default_value=''),
+            tf.io.FixedLenFeature((), tf.string, default_value=''),
         'image/height':
-            tf.FixedLenFeature((), tf.int64, default_value=1),
+            tf.io.FixedLenFeature((), tf.int64, default_value=1),
         'image/width':
-            tf.FixedLenFeature((), tf.int64, default_value=1),
+            tf.io.FixedLenFeature((), tf.int64, default_value=1),
         # Image-level labels.
         'image/class/text':
-            tf.VarLenFeature(tf.string),
+            tf.io.VarLenFeature(tf.string),
         'image/class/label':
-            tf.VarLenFeature(tf.int64),
+            tf.io.VarLenFeature(tf.int64),
         # Object boxes and classes.
         'image/object/bbox/xmin':
-            tf.VarLenFeature(tf.float32),
+            tf.io.VarLenFeature(tf.float32),
         'image/object/bbox/xmax':
-            tf.VarLenFeature(tf.float32),
+            tf.io.VarLenFeature(tf.float32),
         'image/object/bbox/ymin':
-            tf.VarLenFeature(tf.float32),
+            tf.io.VarLenFeature(tf.float32),
         'image/object/bbox/ymax':
-            tf.VarLenFeature(tf.float32),
+            tf.io.VarLenFeature(tf.float32),
         'image/object/class/label':
-            tf.VarLenFeature(tf.int64),
+            tf.io.VarLenFeature(tf.int64),
         'image/object/class/text':
-            tf.VarLenFeature(tf.string),
+            tf.io.VarLenFeature(tf.string),
         'image/object/area':
-            tf.VarLenFeature(tf.float32),
+            tf.io.VarLenFeature(tf.float32),
         'image/object/is_crowd':
-            tf.VarLenFeature(tf.int64),
+            tf.io.VarLenFeature(tf.int64),
         'image/object/difficult':
-            tf.VarLenFeature(tf.int64),
+            tf.io.VarLenFeature(tf.int64),
         'image/object/group_of':
-            tf.VarLenFeature(tf.int64),
+            tf.io.VarLenFeature(tf.int64),
         'image/object/weight':
-            tf.VarLenFeature(tf.float32),
+            tf.io.VarLenFeature(tf.float32),
     }
     # We are checking `dct_method` instead of passing it directly in order to
     # ensure TF version 1.6 compatibility.
@@ -254,7 +254,7 @@ class TfExampleDecoder(data_decoder.DataDecoder):
     }
     if num_additional_channels > 0:
       self.keys_to_features[
-          'image/additional_channels/encoded'] = tf.FixedLenFeature(
+          'image/additional_channels/encoded'] = tf.io.FixedLenFeature(
               (num_additional_channels,), tf.string)
       self.items_to_handlers[
           fields.InputDataFields.
@@ -262,9 +262,9 @@ class TfExampleDecoder(data_decoder.DataDecoder):
     self._num_keypoints = num_keypoints
     if num_keypoints > 0:
       self.keys_to_features['image/object/keypoint/x'] = (
-          tf.VarLenFeature(tf.float32))
+          tf.io.VarLenFeature(tf.float32))
       self.keys_to_features['image/object/keypoint/y'] = (
-          tf.VarLenFeature(tf.float32))
+          tf.io.VarLenFeature(tf.float32))
       self.items_to_handlers[fields.InputDataFields.groundtruth_keypoints] = (
           slim_example_decoder.ItemHandlerCallback(
               ['image/object/keypoint/y', 'image/object/keypoint/x'],
@@ -273,14 +273,14 @@ class TfExampleDecoder(data_decoder.DataDecoder):
       if instance_mask_type in (input_reader_pb2.DEFAULT,
                                 input_reader_pb2.NUMERICAL_MASKS):
         self.keys_to_features['image/object/mask'] = (
-            tf.VarLenFeature(tf.float32))
+            tf.io.VarLenFeature(tf.float32))
         self.items_to_handlers[
             fields.InputDataFields.groundtruth_instance_masks] = (
                 slim_example_decoder.ItemHandlerCallback(
                     ['image/object/mask', 'image/height', 'image/width'],
                     self._reshape_instance_masks))
       elif instance_mask_type == input_reader_pb2.PNG_MASKS:
-        self.keys_to_features['image/object/mask'] = tf.VarLenFeature(tf.string)
+        self.keys_to_features['image/object/mask'] = tf.io.VarLenFeature(tf.string)
         self.items_to_handlers[
             fields.InputDataFields.groundtruth_instance_masks] = (
                 slim_example_decoder.ItemHandlerCallback(
@@ -366,25 +366,25 @@ class TfExampleDecoder(data_decoder.DataDecoder):
     tensor_dict[is_crowd] = tf.cast(tensor_dict[is_crowd], dtype=tf.bool)
     tensor_dict[fields.InputDataFields.image].set_shape([None, None, 3])
     tensor_dict[fields.InputDataFields.original_image_spatial_shape] = tf.shape(
-        tensor_dict[fields.InputDataFields.image])[:2]
+        input=tensor_dict[fields.InputDataFields.image])[:2]
 
     if fields.InputDataFields.image_additional_channels in tensor_dict:
       channels = tensor_dict[fields.InputDataFields.image_additional_channels]
       channels = tf.squeeze(channels, axis=3)
-      channels = tf.transpose(channels, perm=[1, 2, 0])
+      channels = tf.transpose(a=channels, perm=[1, 2, 0])
       tensor_dict[fields.InputDataFields.image_additional_channels] = channels
 
     def default_groundtruth_weights():
       return tf.ones(
-          [tf.shape(tensor_dict[fields.InputDataFields.groundtruth_boxes])[0]],
+          [tf.shape(input=tensor_dict[fields.InputDataFields.groundtruth_boxes])[0]],
           dtype=tf.float32)
 
     tensor_dict[fields.InputDataFields.groundtruth_weights] = tf.cond(
-        tf.greater(
+        pred=tf.greater(
             tf.shape(
-                tensor_dict[fields.InputDataFields.groundtruth_weights])[0],
-            0), lambda: tensor_dict[fields.InputDataFields.groundtruth_weights],
-        default_groundtruth_weights)
+                input=tensor_dict[fields.InputDataFields.groundtruth_weights])[0],
+            0), true_fn=lambda: tensor_dict[fields.InputDataFields.groundtruth_weights],
+        false_fn=default_groundtruth_weights)
     return tensor_dict
 
   def _reshape_keypoints(self, keys_to_tensors):
@@ -402,11 +402,11 @@ class TfExampleDecoder(data_decoder.DataDecoder):
     """
     y = keys_to_tensors['image/object/keypoint/y']
     if isinstance(y, tf.SparseTensor):
-      y = tf.sparse_tensor_to_dense(y)
+      y = tf.sparse.to_dense(y)
     y = tf.expand_dims(y, 1)
     x = keys_to_tensors['image/object/keypoint/x']
     if isinstance(x, tf.SparseTensor):
-      x = tf.sparse_tensor_to_dense(x)
+      x = tf.sparse.to_dense(x)
     x = tf.expand_dims(x, 1)
     keypoints = tf.concat([y, x], 1)
     keypoints = tf.reshape(keypoints, [-1, self._num_keypoints, 2])
@@ -430,8 +430,8 @@ class TfExampleDecoder(data_decoder.DataDecoder):
     to_shape = tf.cast(tf.stack([-1, height, width]), tf.int32)
     masks = keys_to_tensors['image/object/mask']
     if isinstance(masks, tf.SparseTensor):
-      masks = tf.sparse_tensor_to_dense(masks)
-    masks = tf.reshape(tf.to_float(tf.greater(masks, 0.0)), to_shape)
+      masks = tf.sparse.to_dense(masks)
+    masks = tf.reshape(tf.cast(tf.greater(masks, 0.0), dtype=tf.float32), to_shape)
     return tf.cast(masks, tf.float32)
 
   def _decode_png_instance_masks(self, keys_to_tensors):
@@ -452,15 +452,15 @@ class TfExampleDecoder(data_decoder.DataDecoder):
       image = tf.squeeze(
           tf.image.decode_image(image_buffer, channels=1), axis=2)
       image.set_shape([None, None])
-      image = tf.to_float(tf.greater(image, 0))
+      image = tf.cast(tf.greater(image, 0), dtype=tf.float32)
       return image
 
     png_masks = keys_to_tensors['image/object/mask']
     height = keys_to_tensors['image/height']
     width = keys_to_tensors['image/width']
     if isinstance(png_masks, tf.SparseTensor):
-      png_masks = tf.sparse_tensor_to_dense(png_masks, default_value='')
+      png_masks = tf.sparse.to_dense(png_masks, default_value='')
     return tf.cond(
-        tf.greater(tf.size(png_masks), 0),
-        lambda: tf.map_fn(decode_png_mask, png_masks, dtype=tf.float32),
-        lambda: tf.zeros(tf.to_int32(tf.stack([0, height, width]))))
+        pred=tf.greater(tf.size(input=png_masks), 0),
+        true_fn=lambda: tf.map_fn(decode_png_mask, png_masks, dtype=tf.float32),
+        false_fn=lambda: tf.zeros(tf.cast(tf.stack([0, height, width]), dtype=tf.int32)))

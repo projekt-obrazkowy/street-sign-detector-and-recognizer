@@ -116,7 +116,7 @@ class SSDInceptionV3FeatureExtractor(ssd_meta_arch.SSDFeatureExtractor):
     }
 
     with slim.arg_scope(self._conv_hyperparams_fn()):
-      with tf.variable_scope('InceptionV3', reuse=self._reuse_weights) as scope:
+      with tf.compat.v1.variable_scope('InceptionV3', reuse=self._reuse_weights) as scope:
         _, image_features = inception_v3.inception_v3_base(
             ops.pad_to_multiple(preprocessed_inputs, self._pad_to_multiple),
             final_endpoint='Mixed_7c',

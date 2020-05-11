@@ -69,7 +69,7 @@ class FreezableBatchNormTest(tf.test.TestCase):
           scale=testing_var,
           size=(1000, 10))
 
-      out_tensor = norm(tf.convert_to_tensor(test_data, dtype=tf.float32))
+      out_tensor = norm(tf.convert_to_tensor(value=test_data, dtype=tf.float32))
       out = tf.keras.backend.eval(out_tensor)
 
       out -= tf.keras.backend.eval(norm.beta)
@@ -104,7 +104,7 @@ class FreezableBatchNormTest(tf.test.TestCase):
           scale=testing_var,
           size=(1000, 10))
 
-      out_tensor = norm(tf.convert_to_tensor(test_data, dtype=tf.float32))
+      out_tensor = norm(tf.convert_to_tensor(value=test_data, dtype=tf.float32))
       out = tf.keras.backend.eval(out_tensor)
 
       out -= tf.keras.backend.eval(norm.beta)

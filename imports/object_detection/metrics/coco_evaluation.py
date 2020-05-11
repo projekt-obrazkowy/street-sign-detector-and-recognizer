@@ -79,7 +79,7 @@ class CocoDetectionEvaluator(object_detection_evaluation.DetectionEvaluator):
           shape [num_boxes] containing iscrowd flag for groundtruth boxes.
     """
     if image_id in self._image_ids:
-      tf.logging.warning('Ignoring ground truth with image id %s since it was '
+      tf.compat.v1.logging.warning('Ignoring ground truth with image id %s since it was '
                          'previously added', image_id)
       return
 
@@ -130,7 +130,7 @@ class CocoDetectionEvaluator(object_detection_evaluation.DetectionEvaluator):
       raise ValueError('Missing groundtruth for image id: {}'.format(image_id))
 
     if self._image_ids[image_id]:
-      tf.logging.warning('Ignoring detection with image id %s since it was '
+      tf.compat.v1.logging.warning('Ignoring detection with image id %s since it was '
                          'previously added', image_id)
       return
 
@@ -157,8 +157,8 @@ class CocoDetectionEvaluator(object_detection_evaluation.DetectionEvaluator):
         None. In that case nothing will be written to the output file.
     """
     if json_output_path and json_output_path is not None:
-      with tf.gfile.GFile(json_output_path, 'w') as fid:
-        tf.logging.info('Dumping detections to output json file.')
+      with tf.io.gfile.GFile(json_output_path, 'w') as fid:
+        tf.compat.v1.logging.info('Dumping detections to output json file.')
         json_utils.Dump(
             obj=self._detection_boxes_list, fid=fid, float_digits=4, indent=2)
 
@@ -302,12 +302,12 @@ class CocoDetectionEvaluator(object_detection_evaluation.DetectionEvaluator):
       detection_classes = tf.expand_dims(detection_classes, 0)
 
       if num_gt_boxes_per_image is None:
-        num_gt_boxes_per_image = tf.shape(groundtruth_boxes)[1:2]
+        num_gt_boxes_per_image = tf.shape(input=groundtruth_boxes)[1:2]
       else:
         num_gt_boxes_per_image = tf.expand_dims(num_gt_boxes_per_image, 0)
 
       if num_det_boxes_per_image is None:
-        num_det_boxes_per_image = tf.shape(detection_boxes)[1:2]
+        num_det_boxes_per_image = tf.shape(input=detection_boxes)[1:2]
       else:
         num_det_boxes_per_image = tf.expand_dims(num_det_boxes_per_image, 0)
 
@@ -318,16 +318,16 @@ class CocoDetectionEvaluator(object_detection_evaluation.DetectionEvaluator):
     else:
       if num_gt_boxes_per_image is None:
         num_gt_boxes_per_image = tf.tile(
-            tf.shape(groundtruth_boxes)[1:2],
-            multiples=tf.shape(groundtruth_boxes)[0:1])
+            tf.shape(input=groundtruth_boxes)[1:2],
+            multiples=tf.shape(input=groundtruth_boxes)[0:1])
       if num_det_boxes_per_image is None:
         num_det_boxes_per_image = tf.tile(
-            tf.shape(detection_boxes)[1:2],
-            multiples=tf.shape(detection_boxes)[0:1])
+            tf.shape(input=detection_boxes)[1:2],
+            multiples=tf.shape(input=detection_boxes)[0:1])
       if is_annotated is None:
         is_annotated = tf.ones_like(image_id, dtype=tf.bool)
 
-    update_op = tf.py_func(update_op, [image_id,
+    update_op = tf.compat.v1.py_func(update_op, [image_id,
                                        groundtruth_boxes,
                                        groundtruth_classes,
                                        groundtruth_is_crowd,
@@ -365,11 +365,11 @@ class CocoDetectionEvaluator(object_detection_evaluation.DetectionEvaluator):
       return value_func
 
     # Ensure that the metrics are only evaluated once.
-    first_value_op = tf.py_func(first_value_func, [], tf.float32)
+    first_value_op = tf.compat.v1.py_func(first_value_func, [], tf.float32)
     eval_metric_ops = {metric_names[0]: (first_value_op, update_op)}
     with tf.control_dependencies([first_value_op]):
       for metric_name in metric_names[1:]:
-        eval_metric_ops[metric_name] = (tf.py_func(
+        eval_metric_ops[metric_name] = (tf.compat.v1.py_func(
             value_func_factory(metric_name), [], np.float32), update_op)
     return eval_metric_ops
 
@@ -434,7 +434,7 @@ class CocoMaskEvaluator(object_detection_evaluation.DetectionEvaluator):
           {0, 1}.
     """
     if image_id in self._image_id_to_mask_shape_map:
-      tf.logging.warning('Ignoring ground truth with image id %s since it was '
+      tf.compat.v1.logging.warning('Ignoring ground truth with image id %s since it was '
                          'previously added', image_id)
       return
 
@@ -489,7 +489,7 @@ class CocoMaskEvaluator(object_detection_evaluation.DetectionEvaluator):
       raise ValueError('Missing groundtruth for image id: {}'.format(image_id))
 
     if image_id in self._image_ids_with_detections:
-      tf.logging.warning('Ignoring detection with image id %s since it was '
+      tf.compat.v1.logging.warning('Ignoring detection with image id %s since it was '
                          'previously added', image_id)
       return
 
@@ -525,8 +525,8 @@ class CocoMaskEvaluator(object_detection_evaluation.DetectionEvaluator):
         None. In that case nothing will be written to the output file.
     """
     if json_output_path and json_output_path is not None:
-      tf.logging.info('Dumping detections to output json file.')
-      with tf.gfile.GFile(json_output_path, 'w') as fid:
+      tf.compat.v1.logging.info('Dumping detections to output json file.')
+      with tf.io.gfile.GFile(json_output_path, 'w') as fid:
         json_utils.Dump(
             obj=self._detection_masks_list, fid=fid, float_digits=4, indent=2)
 
@@ -674,25 +674,25 @@ class CocoMaskEvaluator(object_detection_evaluation.DetectionEvaluator):
       detection_masks = tf.expand_dims(detection_masks, 0)
 
       if num_gt_boxes_per_image is None:
-        num_gt_boxes_per_image = tf.shape(groundtruth_boxes)[1:2]
+        num_gt_boxes_per_image = tf.shape(input=groundtruth_boxes)[1:2]
       else:
         num_gt_boxes_per_image = tf.expand_dims(num_gt_boxes_per_image, 0)
 
       if num_det_boxes_per_image is None:
-        num_det_boxes_per_image = tf.shape(detection_scores)[1:2]
+        num_det_boxes_per_image = tf.shape(input=detection_scores)[1:2]
       else:
         num_det_boxes_per_image = tf.expand_dims(num_det_boxes_per_image, 0)
     else:
       if num_gt_boxes_per_image is None:
         num_gt_boxes_per_image = tf.tile(
-            tf.shape(groundtruth_boxes)[1:2],
-            multiples=tf.shape(groundtruth_boxes)[0:1])
+            tf.shape(input=groundtruth_boxes)[1:2],
+            multiples=tf.shape(input=groundtruth_boxes)[0:1])
       if num_det_boxes_per_image is None:
         num_det_boxes_per_image = tf.tile(
-            tf.shape(detection_scores)[1:2],
-            multiples=tf.shape(detection_scores)[0:1])
+            tf.shape(input=detection_scores)[1:2],
+            multiples=tf.shape(input=detection_scores)[0:1])
 
-    update_op = tf.py_func(update_op, [
+    update_op = tf.compat.v1.py_func(update_op, [
         image_id, groundtruth_boxes, groundtruth_classes,
         groundtruth_instance_masks, groundtruth_is_crowd,
         num_gt_boxes_per_image, detection_scores, detection_classes,
@@ -727,10 +727,10 @@ class CocoMaskEvaluator(object_detection_evaluation.DetectionEvaluator):
       return value_func
 
     # Ensure that the metrics are only evaluated once.
-    first_value_op = tf.py_func(first_value_func, [], tf.float32)
+    first_value_op = tf.compat.v1.py_func(first_value_func, [], tf.float32)
     eval_metric_ops = {metric_names[0]: (first_value_op, update_op)}
     with tf.control_dependencies([first_value_op]):
       for metric_name in metric_names[1:]:
-        eval_metric_ops[metric_name] = (tf.py_func(
+        eval_metric_ops[metric_name] = (tf.compat.v1.py_func(
             value_func_factory(metric_name), [], np.float32), update_op)
     return eval_metric_ops

@@ -135,7 +135,7 @@ class FasterRCNNMobilenetV1FeatureExtractor(
         mobilenet_v1.mobilenet_v1_arg_scope(
             is_training=self._train_batch_norm,
             weight_decay=self._weight_decay)):
-      with tf.variable_scope('MobilenetV1',
+      with tf.compat.v1.variable_scope('MobilenetV1',
                              reuse=self._reuse_weights) as scope:
         params = {}
         if self._skip_last_stride:
@@ -173,7 +173,7 @@ class FasterRCNNMobilenetV1FeatureExtractor(
       conv_depth = int(float(conv_depth) * conv_depth_ratio)
 
     depth = lambda d: max(int(d * 1.0), 16)
-    with tf.variable_scope('MobilenetV1', reuse=self._reuse_weights):
+    with tf.compat.v1.variable_scope('MobilenetV1', reuse=self._reuse_weights):
       with slim.arg_scope(
           mobilenet_v1.mobilenet_v1_arg_scope(
               is_training=self._train_batch_norm,

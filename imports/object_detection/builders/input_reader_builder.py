@@ -55,7 +55,7 @@ def build(input_reader_config):
                        '`input_reader_config`.')
     _, string_tensor = parallel_reader.parallel_read(
         config.input_path[:],  # Convert `RepeatedScalarContainer` to list.
-        reader_class=tf.TFRecordReader,
+        reader_class=tf.compat.v1.TFRecordReader,
         num_epochs=(input_reader_config.num_epochs
                     if input_reader_config.num_epochs else None),
         num_readers=input_reader_config.num_readers,

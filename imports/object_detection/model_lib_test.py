@@ -42,19 +42,19 @@ MODEL_NAME_FOR_TEST = 'ssd_inception_v2_pets'
 
 def _get_data_path():
   """Returns an absolute path to TFRecord file."""
-  return os.path.join(tf.resource_loader.get_data_files_path(), 'test_data',
+  return os.path.join(tf.compat.v1.resource_loader.get_data_files_path(), 'test_data',
                       'pets_examples.record')
 
 
 def get_pipeline_config_path(model_name):
   """Returns path to the local pipeline config file."""
-  return os.path.join(tf.resource_loader.get_data_files_path(), 'samples',
+  return os.path.join(tf.compat.v1.resource_loader.get_data_files_path(), 'samples',
                       'configs', model_name + '.config')
 
 
 def _get_labelmap_path():
   """Returns an absolute path to label map file."""
-  return os.path.join(tf.resource_loader.get_data_files_path(), 'data',
+  return os.path.join(tf.compat.v1.resource_loader.get_data_files_path(), 'data',
                       'pet_label_map.pbtxt')
 
 
@@ -83,8 +83,8 @@ def _make_initializable_iterator(dataset):
   Returns:
     A `tf.data.Iterator`.
   """
-  iterator = dataset.make_initializable_iterator()
-  tf.add_to_collection(tf.GraphKeys.TABLE_INITIALIZERS, iterator.initializer)
+  iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+  tf.compat.v1.add_to_collection(tf.compat.v1.GraphKeys.TABLE_INITIALIZERS, iterator.initializer)
   return iterator
 
 
@@ -92,7 +92,7 @@ class ModelLibTest(tf.test.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    tf.reset_default_graph()
+    tf.compat.v1.reset_default_graph()
 
   def _assert_model_fn_for_train_eval(self, configs, mode,
                                       class_agnostic=False):
@@ -175,7 +175,7 @@ class ModelLibTest(tf.test.TestCase):
       self.assertIsNone(estimator_spec.train_op)
       self.assertIsNotNone(estimator_spec.predictions)
       self.assertIsNotNone(estimator_spec.export_outputs)
-      self.assertIn(tf.saved_model.signature_constants.PREDICT_METHOD_NAME,
+      self.assertIn(tf.saved_model.PREDICT_METHOD_NAME,
                     estimator_spec.export_outputs)
 
   def test_model_fn_in_train_mode(self):
@@ -333,11 +333,11 @@ class ModelLibTest(tf.test.TestCase):
 class UnbatchTensorsTest(tf.test.TestCase):
 
   def test_unbatch_without_unpadding(self):
-    image_placeholder = tf.placeholder(tf.float32, [2, None, None, None])
-    groundtruth_boxes_placeholder = tf.placeholder(tf.float32, [2, None, None])
-    groundtruth_classes_placeholder = tf.placeholder(tf.float32,
+    image_placeholder = tf.compat.v1.placeholder(tf.float32, [2, None, None, None])
+    groundtruth_boxes_placeholder = tf.compat.v1.placeholder(tf.float32, [2, None, None])
+    groundtruth_classes_placeholder = tf.compat.v1.placeholder(tf.float32,
                                                      [2, None, None])
-    groundtruth_weights_placeholder = tf.placeholder(tf.float32, [2, None])
+    groundtruth_weights_placeholder = tf.compat.v1.placeholder(tf.float32, [2, None])
 
     tensor_dict = {
         fields.InputDataFields.image:
@@ -378,11 +378,11 @@ class UnbatchTensorsTest(tf.test.TestCase):
       self.assertAllEqual(groundtruth_weights_out.shape, [5])
 
   def test_unbatch_and_unpad_groundtruth_tensors(self):
-    image_placeholder = tf.placeholder(tf.float32, [2, None, None, None])
-    groundtruth_boxes_placeholder = tf.placeholder(tf.float32, [2, 5, None])
-    groundtruth_classes_placeholder = tf.placeholder(tf.float32, [2, 5, None])
-    groundtruth_weights_placeholder = tf.placeholder(tf.float32, [2, 5])
-    num_groundtruth_placeholder = tf.placeholder(tf.int32, [2])
+    image_placeholder = tf.compat.v1.placeholder(tf.float32, [2, None, None, None])
+    groundtruth_boxes_placeholder = tf.compat.v1.placeholder(tf.float32, [2, 5, None])
+    groundtruth_classes_placeholder = tf.compat.v1.placeholder(tf.float32, [2, 5, None])
+    groundtruth_weights_placeholder = tf.compat.v1.placeholder(tf.float32, [2, 5])
+    num_groundtruth_placeholder = tf.compat.v1.placeholder(tf.int32, [2])
 
     tensor_dict = {
         fields.InputDataFields.image:

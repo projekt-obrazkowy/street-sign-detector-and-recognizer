@@ -151,7 +151,7 @@ class ConvolutionalMaskHead(head.KerasHead):
       mask_predictions = layer(mask_predictions)
     batch_size = features.get_shape().as_list()[0]
     if batch_size is None:
-      batch_size = tf.shape(features)[0]
+      batch_size = tf.shape(input=features)[0]
     mask_predictions = tf.reshape(
         mask_predictions,
         [batch_size, -1, self._num_masks, self._mask_height, self._mask_width])

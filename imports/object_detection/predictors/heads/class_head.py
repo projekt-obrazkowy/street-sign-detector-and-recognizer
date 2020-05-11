@@ -81,7 +81,7 @@ class MaskRCNNClassHead(head.Head):
     if num_predictions_per_location != 1:
       raise ValueError('Only num_predictions_per_location=1 is supported')
     spatial_averaged_roi_pooled_features = tf.reduce_mean(
-        features, [1, 2], keep_dims=True, name='AvgPool')
+        input_tensor=features, axis=[1, 2], keepdims=True, name='AvgPool')
     flattened_roi_pooled_features = slim.flatten(
         spatial_averaged_roi_pooled_features)
     if self._use_dropout:
@@ -187,14 +187,14 @@ class ConvolutionalClassHead(head.Head):
           normalizer_fn=None,
           normalizer_params=None,
           scope='ClassPredictor',
-          biases_initializer=tf.constant_initializer(
+          biases_initializer=tf.compat.v1.constant_initializer(
               self._class_prediction_bias_init))
     if self._apply_sigmoid_to_scores:
       class_predictions_with_background = tf.sigmoid(
           class_predictions_with_background)
     batch_size = features.get_shape().as_list()[0]
     if batch_size is None:
-      batch_size = tf.shape(features)[0]
+      batch_size = tf.shape(input=features)[0]
     class_predictions_with_background = tf.reshape(
         class_predictions_with_background,
         [batch_size, -1, self._num_class_slots])
@@ -270,12 +270,12 @@ class WeightSharedConvolutionalClassHead(head.Head):
         [self._kernel_size, self._kernel_size],
         activation_fn=None, stride=1, padding='SAME',
         normalizer_fn=None,
-        biases_initializer=tf.constant_initializer(
+        biases_initializer=tf.compat.v1.constant_initializer(
             self._class_prediction_bias_init),
         scope='ClassPredictor')
     batch_size = features.get_shape().as_list()[0]
     if batch_size is None:
-      batch_size = tf.shape(features)[0]
+      batch_size = tf.shape(input=features)[0]
     class_predictions_with_background = self._score_converter_fn(
         class_predictions_with_background)
     class_predictions_with_background = tf.reshape(

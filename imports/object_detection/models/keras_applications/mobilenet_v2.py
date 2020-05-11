@@ -83,7 +83,7 @@ class _LayersOverride(object):
     self._use_explicit_padding = use_explicit_padding
     self._min_depth = min_depth
     self.regularizer = tf.keras.regularizers.l2(0.00004 * 0.5)
-    self.initializer = tf.truncated_normal_initializer(stddev=0.09)
+    self.initializer = tf.compat.v1.truncated_normal_initializer(stddev=0.09)
 
   def _FixedPaddingLayer(self, kernel_size):
     return tf.keras.layers.Lambda(lambda x: ops.fixed_padding(x, kernel_size))
@@ -212,7 +212,7 @@ class _LayersOverride(object):
 
     input_tensor = tf.constant(0.0, shape=[default_batch_size] + default_shape)
 
-    placeholder_with_default = tf.placeholder_with_default(
+    placeholder_with_default = tf.compat.v1.placeholder_with_default(
         input=input_tensor, shape=[None] + shape)
     return tf.keras.layers.Input(tensor=placeholder_with_default)
 

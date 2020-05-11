@@ -140,7 +140,7 @@ class SSDPNASNetFeatureExtractor(ssd_meta_arch.SSDFeatureExtractor):
               num_classes=None,
               is_training=self._is_training,
               final_endpoint='Cell_11')
-    with tf.variable_scope('SSD_feature_maps', reuse=self._reuse_weights):
+    with tf.compat.v1.variable_scope('SSD_feature_maps', reuse=self._reuse_weights):
       with slim.arg_scope(self._conv_hyperparams_fn()):
         feature_maps = feature_map_generators.multi_resolution_feature_maps(
             feature_map_layout=feature_map_layout,
@@ -167,7 +167,7 @@ class SSDPNASNetFeatureExtractor(ssd_meta_arch.SSDFeatureExtractor):
       the model graph.
     """
     variables_to_restore = {}
-    for variable in tf.global_variables():
+    for variable in tf.compat.v1.global_variables():
       if variable.op.name.startswith(feature_extractor_scope):
         var_name = variable.op.name.replace(feature_extractor_scope + '/', '')
         var_name += '/ExponentialMovingAverage'

@@ -57,7 +57,7 @@ class FakeModel(model.DetectionModel):
               tf.constant([[[0.7, 0.6], [0.9, 0.0]]], tf.float32),
       }
     with tf.control_dependencies(
-        [tf.convert_to_tensor(features.get_shape().as_list()[1:3])]):
+        [tf.convert_to_tensor(value=features.get_shape().as_list()[1:3])]):
       prediction_tensors['anchors'] = tf.constant(
           [[0.0, 0.0, 0.5, 0.5], [0.5, 0.5, 1.0, 1.0]], tf.float32)
     return prediction_tensors
@@ -88,11 +88,11 @@ class ExportTfliteGraphTest(tf.test.TestCase):
     g = tf.Graph()
     with g.as_default():
       mock_model = FakeModel()
-      inputs = tf.placeholder(tf.float32, shape=[1, 10, 10, num_channels])
+      inputs = tf.compat.v1.placeholder(tf.float32, shape=[1, 10, 10, num_channels])
       mock_model.predict(inputs, true_image_shapes=None)
       if use_moving_averages:
         tf.train.ExponentialMovingAverage(0.0).apply()
-      tf.train.get_or_create_global_step()
+      tf.compat.v1.train.get_or_create_global_step()
       if quantize:
         graph_rewriter_config = graph_rewriter_pb2.GraphRewriter()
         graph_rewriter_config.quantization.delay = 500000
@@ -100,14 +100,14 @@ class ExportTfliteGraphTest(tf.test.TestCase):
             graph_rewriter_config, is_training=False)
         graph_rewriter_fn()
 
-      saver = tf.train.Saver()
-      init = tf.global_variables_initializer()
+      saver = tf.compat.v1.train.Saver()
+      init = tf.compat.v1.global_variables_initializer()
       with self.test_session() as sess:
         sess.run(init)
         saver.save(sess, checkpoint_path)
 
   def _assert_quant_vars_exists(self, tflite_graph_file):
-    with tf.gfile.Open(tflite_graph_file) as f:
+    with tf.io.gfile.GFile(tflite_graph_file) as f:
       graph_string = f.read()
       print(graph_string)
       self.assertTrue('quant' in graph_string)
@@ -116,8 +116,8 @@ class ExportTfliteGraphTest(tf.test.TestCase):
     """Imports a tflite graph, runs single inference and returns outputs."""
     graph = tf.Graph()
     with graph.as_default():
-      graph_def = tf.GraphDef()
-      with tf.gfile.Open(tflite_graph_file) as f:
+      graph_def = tf.compat.v1.GraphDef()
+      with tf.io.gfile.GFile(tflite_graph_file) as f:
         graph_def.ParseFromString(f.read())
       tf.import_graph_def(graph_def, name='')
       input_tensor = graph.get_tensor_by_name('normalized_input_image_tensor:0')
@@ -321,8 +321,8 @@ class ExportTfliteGraphTest(tf.test.TestCase):
     self.assertTrue(os.path.exists(tflite_graph_file))
     graph = tf.Graph()
     with graph.as_default():
-      graph_def = tf.GraphDef()
-      with tf.gfile.Open(tflite_graph_file) as f:
+      graph_def = tf.compat.v1.GraphDef()
+      with tf.io.gfile.GFile(tflite_graph_file) as f:
         graph_def.ParseFromString(f.read())
       all_op_names = [node.name for node in graph_def.node]
       self.assertTrue('TFLite_Detection_PostProcess' in all_op_names)

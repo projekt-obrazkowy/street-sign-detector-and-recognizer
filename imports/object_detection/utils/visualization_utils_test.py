@@ -143,7 +143,7 @@ class VisualizationUtilsTest(tf.test.TestCase):
               min_score_thresh=0.2))
 
       with self.test_session() as sess:
-        sess.run(tf.global_variables_initializer())
+        sess.run(tf.compat.v1.global_variables_initializer())
 
         # Write output images for visualization.
         images_with_boxes_np = sess.run(images_with_boxes)
@@ -179,7 +179,7 @@ class VisualizationUtilsTest(tf.test.TestCase):
               min_score_thresh=0.2))
 
       with self.test_session() as sess:
-        sess.run(tf.global_variables_initializer())
+        sess.run(tf.compat.v1.global_variables_initializer())
 
         final_images_np = sess.run(images_with_boxes)
         self.assertEqual((2, 100, 200, 3), final_images_np.shape)
@@ -208,7 +208,7 @@ class VisualizationUtilsTest(tf.test.TestCase):
               min_score_thresh=0.2))
 
       with self.test_session() as sess:
-        sess.run(tf.global_variables_initializer())
+        sess.run(tf.compat.v1.global_variables_initializer())
 
         final_images_np = sess.run(images_with_boxes)
         self.assertEqual((2, 100, 200, 3), final_images_np.shape)
@@ -252,7 +252,7 @@ class VisualizationUtilsTest(tf.test.TestCase):
   def test_add_cdf_image_summary(self):
     values = [0.1, 0.2, 0.3, 0.4, 0.42, 0.44, 0.46, 0.48, 0.50]
     visualization_utils.add_cdf_image_summary(values, 'PositiveAnchorLoss')
-    cdf_image_summary = tf.get_collection(key=tf.GraphKeys.SUMMARIES)[0]
+    cdf_image_summary = tf.compat.v1.get_collection(key=tf.compat.v1.GraphKeys.SUMMARIES)[0]
     with self.test_session():
       cdf_image_summary.eval()
 
@@ -261,7 +261,7 @@ class VisualizationUtilsTest(tf.test.TestCase):
     bins = [0.01 * i for i in range(101)]
     visualization_utils.add_hist_image_summary(values, bins,
                                                'ScoresDistribution')
-    hist_image_summary = tf.get_collection(key=tf.GraphKeys.SUMMARIES)[0]
+    hist_image_summary = tf.compat.v1.get_collection(key=tf.compat.v1.GraphKeys.SUMMARIES)[0]
     with self.test_session():
       hist_image_summary.eval()
 
@@ -273,26 +273,26 @@ class VisualizationUtilsTest(tf.test.TestCase):
         category_index,
         max_examples_to_draw=max_examples_to_draw,
         summary_name_prefix=metric_op_base)
-    original_image = tf.placeholder(tf.uint8, [4, None, None, 3])
-    original_image_spatial_shape = tf.placeholder(tf.int32, [4, 2])
-    true_image_shape = tf.placeholder(tf.int32, [4, 3])
-    detection_boxes = tf.random_uniform([4, 20, 4],
+    original_image = tf.compat.v1.placeholder(tf.uint8, [4, None, None, 3])
+    original_image_spatial_shape = tf.compat.v1.placeholder(tf.int32, [4, 2])
+    true_image_shape = tf.compat.v1.placeholder(tf.int32, [4, 3])
+    detection_boxes = tf.random.uniform([4, 20, 4],
                                         minval=0.0,
                                         maxval=1.0,
                                         dtype=tf.float32)
-    detection_classes = tf.random_uniform([4, 20],
+    detection_classes = tf.random.uniform([4, 20],
                                           minval=1,
                                           maxval=3,
                                           dtype=tf.int64)
-    detection_scores = tf.random_uniform([4, 20],
+    detection_scores = tf.random.uniform([4, 20],
                                          minval=0.,
                                          maxval=1.,
                                          dtype=tf.float32)
-    groundtruth_boxes = tf.random_uniform([4, 8, 4],
+    groundtruth_boxes = tf.random.uniform([4, 8, 4],
                                           minval=0.0,
                                           maxval=1.0,
                                           dtype=tf.float32)
-    groundtruth_classes = tf.random_uniform([4, 8],
+    groundtruth_classes = tf.random.uniform([4, 8],
                                             minval=1,
                                             maxval=3,
                                             dtype=tf.int64)
@@ -317,7 +317,7 @@ class VisualizationUtilsTest(tf.test.TestCase):
     _, update_op = metric_ops[metric_ops.keys()[0]]
 
     with self.test_session() as sess:
-      sess.run(tf.global_variables_initializer())
+      sess.run(tf.compat.v1.global_variables_initializer())
       value_ops = {}
       for key, (value_op, _) in metric_ops.iteritems():
         value_ops[key] = value_op

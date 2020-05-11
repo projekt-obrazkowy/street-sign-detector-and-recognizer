@@ -99,11 +99,11 @@ class MaskRCNNKeypointHead(head.Head):
             scope='conv_%d' % (i + 1))
       net = slim.conv2d_transpose(
           net, self._num_keypoints, [2, 2], scope='deconv1')
-      heatmaps_mask = tf.image.resize_bilinear(
+      heatmaps_mask = tf.image.resize(
           net, [self._keypoint_heatmap_height, self._keypoint_heatmap_width],
-          align_corners=True,
+          method=tf.image.ResizeMethod.BILINEAR,
           name='upsample')
       return tf.expand_dims(
-          tf.transpose(heatmaps_mask, perm=[0, 3, 1, 2]),
+          tf.transpose(a=heatmaps_mask, perm=[0, 3, 1, 2]),
           axis=1,
           name='KeypointPredictor')

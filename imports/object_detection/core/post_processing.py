@@ -116,8 +116,8 @@ def multiclass_non_max_suppression(boxes,
     raise ValueError('if change_coordinate_frame is True, then a clip_window'
                      'must be specified.')
 
-  with tf.name_scope(scope, 'MultiClassNonMaxSuppression'):
-    num_scores = tf.shape(scores)[0]
+  with tf.compat.v1.name_scope(scope, 'MultiClassNonMaxSuppression'):
+    num_scores = tf.shape(input=scores)[0]
     num_classes = scores.get_shape()[1]
 
     selected_boxes_list = []
@@ -168,7 +168,7 @@ def multiclass_non_max_suppression(boxes,
             max_selection_size,
             iou_threshold=iou_thresh,
             score_threshold=score_thresh)
-        num_valid_nms_boxes = tf.shape(selected_indices)[0]
+        num_valid_nms_boxes = tf.shape(input=selected_indices)[0]
         selected_indices = tf.concat(
             [selected_indices,
              tf.zeros(max_selection_size-num_valid_nms_boxes, tf.int32)], 0)
@@ -179,7 +179,7 @@ def multiclass_non_max_suppression(boxes,
           tf.range(max_selection_size), num_valid_nms_boxes)
       nms_scores = nms_result.get_field(fields.BoxListFields.scores)
       nms_result.add_field(fields.BoxListFields.scores,
-                           tf.where(valid_nms_boxes_indx,
+                           tf.compat.v1.where(valid_nms_boxes_indx,
                                     nms_scores, -1*tf.ones(max_selection_size)))
       num_valid_nms_boxes_cumulative += num_valid_nms_boxes
 
@@ -199,15 +199,15 @@ def multiclass_non_max_suppression(boxes,
           filter_nonoverlapping=not pad_to_max_output_size)
       # Set the scores of boxes with zero area to -1 to keep the default
       # behaviour of pruning out zero area boxes.
-      sorted_boxes_size = tf.shape(sorted_boxes.get())[0]
+      sorted_boxes_size = tf.shape(input=sorted_boxes.get())[0]
       non_zero_box_area = tf.cast(box_list_ops.area(sorted_boxes), tf.bool)
-      sorted_boxes_scores = tf.where(
+      sorted_boxes_scores = tf.compat.v1.where(
           non_zero_box_area,
           sorted_boxes.get_field(fields.BoxListFields.scores),
           -1*tf.ones(sorted_boxes_size))
       sorted_boxes.add_field(fields.BoxListFields.scores, sorted_boxes_scores)
       num_valid_nms_boxes_cumulative = tf.reduce_sum(
-          tf.cast(tf.greater_equal(sorted_boxes_scores, 0), tf.int32))
+          input_tensor=tf.cast(tf.greater_equal(sorted_boxes_scores, 0), tf.int32))
       sorted_boxes = box_list_ops.sort_by_field(sorted_boxes,
                                                 fields.BoxListFields.scores)
       if change_coordinate_frame:
@@ -219,7 +219,7 @@ def multiclass_non_max_suppression(boxes,
                                   sorted_boxes.num_boxes())
       sorted_boxes = box_list_ops.gather(sorted_boxes,
                                          tf.range(max_total_size))
-      num_valid_nms_boxes_cumulative = tf.where(
+      num_valid_nms_boxes_cumulative = tf.compat.v1.where(
           max_total_size > num_valid_nms_boxes_cumulative,
           num_valid_nms_boxes_cumulative, max_total_size)
     # Select only the valid boxes if pad_to_max_output_size is False.
@@ -323,15 +323,15 @@ def batch_multiclass_non_max_suppression(boxes,
                      'must be specified.')
   original_masks = masks
   original_additional_fields = additional_fields
-  with tf.name_scope(scope, 'BatchMultiClassNonMaxSuppression'):
+  with tf.compat.v1.name_scope(scope, 'BatchMultiClassNonMaxSuppression'):
     boxes_shape = boxes.shape
     batch_size = boxes_shape[0].value
     num_anchors = boxes_shape[1].value
 
     if batch_size is None:
-      batch_size = tf.shape(boxes)[0]
+      batch_size = tf.shape(input=boxes)[0]
     if num_anchors is None:
-      num_anchors = tf.shape(boxes)[1]
+      num_anchors = tf.shape(input=boxes)[1]
 
     # If num valid boxes aren't provided, create one and mark all boxes as
     # valid.
@@ -346,10 +346,10 @@ def batch_multiclass_non_max_suppression(boxes,
 
     if clip_window is None:
       clip_window = tf.stack([
-          tf.reduce_min(boxes[:, :, :, 0]),
-          tf.reduce_min(boxes[:, :, :, 1]),
-          tf.reduce_max(boxes[:, :, :, 2]),
-          tf.reduce_max(boxes[:, :, :, 3])
+          tf.reduce_min(input_tensor=boxes[:, :, :, 0]),
+          tf.reduce_min(input_tensor=boxes[:, :, :, 1]),
+          tf.reduce_max(input_tensor=boxes[:, :, :, 2]),
+          tf.reduce_max(input_tensor=boxes[:, :, :, 3])
       ])
     if clip_window.shape.ndims == 1:
       clip_window = tf.tile(tf.expand_dims(clip_window, 0), [batch_size, 1])
@@ -409,8 +409,8 @@ def batch_multiclass_non_max_suppression(boxes,
       }
       per_image_num_valid_boxes = args[-1]
       if use_static_shapes:
-        total_proposals = tf.shape(per_image_scores)
-        per_image_scores = tf.where(
+        total_proposals = tf.shape(input=per_image_scores)
+        per_image_scores = tf.compat.v1.where(
             tf.less(tf.range(total_proposals[0]), per_image_num_valid_boxes),
             per_image_scores,
             tf.fill(total_proposals, np.finfo('float32').min))

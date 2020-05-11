@@ -31,7 +31,7 @@ class InputReaderBuilderTest(tf.test.TestCase):
 
   def create_tf_record(self):
     path = os.path.join(self.get_temp_dir(), 'tfrecord')
-    writer = tf.python_io.TFRecordWriter(path)
+    writer = tf.io.TFRecordWriter(path)
 
     image_tensor = np.random.randint(255, size=(4, 5, 3)).astype(np.uint8)
     flat_mask = (4 * 5) * [1.0]
@@ -68,7 +68,7 @@ class InputReaderBuilderTest(tf.test.TestCase):
     text_format.Merge(input_reader_text_proto, input_reader_proto)
     tensor_dict = input_reader_builder.build(input_reader_proto)
 
-    with tf.train.MonitoredSession() as sess:
+    with tf.compat.v1.train.MonitoredSession() as sess:
       output_dict = sess.run(tensor_dict)
 
     self.assertTrue(fields.InputDataFields.groundtruth_instance_masks
@@ -98,7 +98,7 @@ class InputReaderBuilderTest(tf.test.TestCase):
     text_format.Merge(input_reader_text_proto, input_reader_proto)
     tensor_dict = input_reader_builder.build(input_reader_proto)
 
-    with tf.train.MonitoredSession() as sess:
+    with tf.compat.v1.train.MonitoredSession() as sess:
       output_dict = sess.run(tensor_dict)
 
     self.assertEquals(

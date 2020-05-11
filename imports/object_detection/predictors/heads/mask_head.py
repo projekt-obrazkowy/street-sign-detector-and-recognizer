@@ -143,9 +143,9 @@ class MaskRCNNMaskHead(head.Head):
           num_feature_channels, self._num_classes)
     with slim.arg_scope(self._conv_hyperparams_fn()):
       if not self._convolve_then_upsample:
-        features = tf.image.resize_bilinear(
+        features = tf.image.resize(
             features, [self._mask_height, self._mask_width],
-            align_corners=True)
+            method=tf.image.ResizeMethod.BILINEAR)
       for _ in range(self._mask_prediction_num_conv_layers - 1):
         features = slim.conv2d(
             features,
@@ -171,7 +171,7 @@ class MaskRCNNMaskHead(head.Head):
           normalizer_fn=None,
           kernel_size=[3, 3])
       return tf.expand_dims(
-          tf.transpose(mask_predictions, perm=[0, 3, 1, 2]),
+          tf.transpose(a=mask_predictions, perm=[0, 3, 1, 2]),
           axis=1,
           name='MaskPredictor')
 
@@ -272,7 +272,7 @@ class ConvolutionalMaskHead(head.Head):
           scope='MaskPredictor')
     batch_size = features.get_shape().as_list()[0]
     if batch_size is None:
-      batch_size = tf.shape(features)[0]
+      batch_size = tf.shape(input=features)[0]
     mask_predictions = tf.reshape(
         mask_predictions,
         [batch_size, -1, num_masks, self._mask_height, self._mask_width])
@@ -348,7 +348,7 @@ class WeightSharedConvolutionalMaskHead(head.Head):
         scope='MaskPredictor')
     batch_size = features.get_shape().as_list()[0]
     if batch_size is None:
-      batch_size = tf.shape(features)[0]
+      batch_size = tf.shape(input=features)[0]
     mask_predictions = tf.reshape(
         mask_predictions,
         [batch_size, -1, num_masks, self._mask_height, self._mask_width])

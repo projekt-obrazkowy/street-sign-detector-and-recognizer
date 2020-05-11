@@ -86,7 +86,7 @@ class CocoToolsTest(tf.test.TestCase):
     categories = [{'id': 0, 'name': 'person'},
                   {'id': 1, 'name': 'cat'},
                   {'id': 2, 'name': 'dog'}]
-    output_path = os.path.join(tf.test.get_temp_dir(), 'groundtruth.json')
+    output_path = os.path.join(tf.compat.v1.test.get_temp_dir(), 'groundtruth.json')
     result = coco_tools.ExportGroundtruthToCOCO(
         image_ids,
         groundtruth_boxes,
@@ -94,7 +94,7 @@ class CocoToolsTest(tf.test.TestCase):
         categories,
         output_path=output_path)
     self.assertDictEqual(result, self._groundtruth_dict)
-    with tf.gfile.GFile(output_path, 'r') as f:
+    with tf.io.gfile.GFile(output_path, 'r') as f:
       written_result = f.read()
       # The json output should have floats written to 4 digits of precision.
       matcher = re.compile(r'"bbox":\s+\[\n\s+\d+.\d\d\d\d,', re.MULTILINE)
@@ -111,7 +111,7 @@ class CocoToolsTest(tf.test.TestCase):
     categories = [{'id': 0, 'name': 'person'},
                   {'id': 1, 'name': 'cat'},
                   {'id': 2, 'name': 'dog'}]
-    output_path = os.path.join(tf.test.get_temp_dir(), 'detections.json')
+    output_path = os.path.join(tf.compat.v1.test.get_temp_dir(), 'detections.json')
     result = coco_tools.ExportDetectionsToCOCO(
         image_ids,
         detections_boxes,
@@ -120,7 +120,7 @@ class CocoToolsTest(tf.test.TestCase):
         categories,
         output_path=output_path)
     self.assertListEqual(result, self._detections_list)
-    with tf.gfile.GFile(output_path, 'r') as f:
+    with tf.io.gfile.GFile(output_path, 'r') as f:
       written_result = f.read()
       # The json output should have floats written to 4 digits of precision.
       matcher = re.compile(r'"bbox":\s+\[\n\s+\d+.\d\d\d\d,', re.MULTILINE)
@@ -145,7 +145,7 @@ class CocoToolsTest(tf.test.TestCase):
     categories = [{'id': 0, 'name': 'person'},
                   {'id': 1, 'name': 'cat'},
                   {'id': 2, 'name': 'dog'}]
-    output_path = os.path.join(tf.test.get_temp_dir(), 'segments.json')
+    output_path = os.path.join(tf.compat.v1.test.get_temp_dir(), 'segments.json')
     result = coco_tools.ExportSegmentsToCOCO(
         image_ids,
         detection_masks,
@@ -153,7 +153,7 @@ class CocoToolsTest(tf.test.TestCase):
         detection_classes,
         categories,
         output_path=output_path)
-    with tf.gfile.GFile(output_path, 'r') as f:
+    with tf.io.gfile.GFile(output_path, 'r') as f:
       written_result = f.read()
       written_result = json.loads(written_result)
       mask_load = mask.decode([written_result[0]['segmentation']])
@@ -178,7 +178,7 @@ class CocoToolsTest(tf.test.TestCase):
                   {'id': 2, 'name': 'cat'},
                   {'id': 3, 'name': 'dog'}]
 
-    output_path = os.path.join(tf.test.get_temp_dir(), 'keypoints.json')
+    output_path = os.path.join(tf.compat.v1.test.get_temp_dir(), 'keypoints.json')
     result = coco_tools.ExportKeypointsToCOCO(
         image_ids,
         detection_keypoints,
@@ -187,7 +187,7 @@ class CocoToolsTest(tf.test.TestCase):
         categories,
         output_path=output_path)
 
-    with tf.gfile.GFile(output_path, 'r') as f:
+    with tf.io.gfile.GFile(output_path, 'r') as f:
       written_result = f.read()
       written_result = json.loads(written_result)
       self.assertAlmostEqual(result, written_result)

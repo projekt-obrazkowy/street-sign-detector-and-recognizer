@@ -157,7 +157,7 @@ class SsdMobilenetV2FpnFeatureExtractorTest(
     image_width = 256
     depth_multiplier = 1
     pad_to_multiple = 1
-    image_placeholder = tf.placeholder(tf.float32,
+    image_placeholder = tf.compat.v1.placeholder(tf.float32,
                                        [1, image_height, image_width, 3])
     feature_extractor = self._create_feature_extractor(depth_multiplier,
                                                        pad_to_multiple)
@@ -165,7 +165,7 @@ class SsdMobilenetV2FpnFeatureExtractorTest(
     _ = feature_extractor.extract_features(preprocessed_image)
     self.assertTrue(
         any(op.type == 'FusedBatchNorm'
-            for op in tf.get_default_graph().get_operations()))
+            for op in tf.compat.v1.get_default_graph().get_operations()))
 
   def test_get_expected_feature_map_variable_names(self):
     depth_multiplier = 1.0
@@ -189,12 +189,12 @@ class SsdMobilenetV2FpnFeatureExtractorTest(
 
     g = tf.Graph()
     with g.as_default():
-      preprocessed_inputs = tf.placeholder(tf.float32, (4, None, None, 3))
+      preprocessed_inputs = tf.compat.v1.placeholder(tf.float32, (4, None, None, 3))
       feature_extractor = self._create_feature_extractor(
           depth_multiplier, pad_to_multiple)
       feature_extractor.extract_features(preprocessed_inputs)
       actual_variable_set = set([
-          var.op.name for var in g.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
+          var.op.name for var in g.get_collection(tf.compat.v1.GraphKeys.GLOBAL_VARIABLES)
       ])
       variable_intersection = expected_feature_maps_variables.intersection(
           actual_variable_set)

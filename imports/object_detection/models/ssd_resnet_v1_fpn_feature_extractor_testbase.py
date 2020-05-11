@@ -99,9 +99,9 @@ class SSDResnetFPNFeatureExtractorTestBase(
     with g.as_default():
       feature_extractor = self._create_feature_extractor(
           depth_multiplier, pad_to_multiple)
-      preprocessed_inputs = tf.placeholder(tf.float32, (4, None, None, 3))
+      preprocessed_inputs = tf.compat.v1.placeholder(tf.float32, (4, None, None, 3))
       feature_extractor.extract_features(preprocessed_inputs)
-      variables = g.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
+      variables = g.get_collection(tf.compat.v1.GraphKeys.GLOBAL_VARIABLES)
       for variable in variables:
         self.assertTrue(
             variable.name.startswith(self._resnet_scope_name())

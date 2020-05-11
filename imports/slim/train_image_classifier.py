@@ -254,7 +254,7 @@ def _configure_learning_rate(num_samples_per_epoch, global_step):
     decay_steps /= FLAGS.replicas_to_aggregate
 
   if FLAGS.learning_rate_decay_type == 'exponential':
-    return tf.train.exponential_decay(FLAGS.learning_rate,
+    return tf.compat.v1.train.exponential_decay(FLAGS.learning_rate,
                                       global_step,
                                       decay_steps,
                                       FLAGS.learning_rate_decay_factor,
@@ -263,7 +263,7 @@ def _configure_learning_rate(num_samples_per_epoch, global_step):
   elif FLAGS.learning_rate_decay_type == 'fixed':
     return tf.constant(FLAGS.learning_rate, name='fixed_learning_rate')
   elif FLAGS.learning_rate_decay_type == 'polynomial':
-    return tf.train.polynomial_decay(FLAGS.learning_rate,
+    return tf.compat.v1.train.polynomial_decay(FLAGS.learning_rate,
                                      global_step,
                                      decay_steps,
                                      FLAGS.end_learning_rate,
@@ -288,40 +288,40 @@ def _configure_optimizer(learning_rate):
     ValueError: if FLAGS.optimizer is not recognized.
   """
   if FLAGS.optimizer == 'adadelta':
-    optimizer = tf.train.AdadeltaOptimizer(
+    optimizer = tf.compat.v1.train.AdadeltaOptimizer(
         learning_rate,
         rho=FLAGS.adadelta_rho,
         epsilon=FLAGS.opt_epsilon)
   elif FLAGS.optimizer == 'adagrad':
-    optimizer = tf.train.AdagradOptimizer(
+    optimizer = tf.compat.v1.train.AdagradOptimizer(
         learning_rate,
         initial_accumulator_value=FLAGS.adagrad_initial_accumulator_value)
   elif FLAGS.optimizer == 'adam':
-    optimizer = tf.train.AdamOptimizer(
+    optimizer = tf.compat.v1.train.AdamOptimizer(
         learning_rate,
         beta1=FLAGS.adam_beta1,
         beta2=FLAGS.adam_beta2,
         epsilon=FLAGS.opt_epsilon)
   elif FLAGS.optimizer == 'ftrl':
-    optimizer = tf.train.FtrlOptimizer(
+    optimizer = tf.compat.v1.train.FtrlOptimizer(
         learning_rate,
         learning_rate_power=FLAGS.ftrl_learning_rate_power,
         initial_accumulator_value=FLAGS.ftrl_initial_accumulator_value,
         l1_regularization_strength=FLAGS.ftrl_l1,
         l2_regularization_strength=FLAGS.ftrl_l2)
   elif FLAGS.optimizer == 'momentum':
-    optimizer = tf.train.MomentumOptimizer(
+    optimizer = tf.compat.v1.train.MomentumOptimizer(
         learning_rate,
         momentum=FLAGS.momentum,
         name='Momentum')
   elif FLAGS.optimizer == 'rmsprop':
-    optimizer = tf.train.RMSPropOptimizer(
+    optimizer = tf.compat.v1.train.RMSPropOptimizer(
         learning_rate,
         decay=FLAGS.rmsprop_decay,
         momentum=FLAGS.rmsprop_momentum,
         epsilon=FLAGS.opt_epsilon)
   elif FLAGS.optimizer == 'sgd':
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate)
+    optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
   else:
     raise ValueError('Optimizer [%s] was not recognized' % FLAGS.optimizer)
   return optimizer
@@ -342,7 +342,7 @@ def _get_init_fn():
   # Warn the user if a checkpoint exists in the train_dir. Then we'll be
   # ignoring the checkpoint anyway.
   if tf.train.latest_checkpoint(FLAGS.train_dir):
-    tf.logging.info(
+    tf.compat.v1.logging.info(
         'Ignoring --checkpoint_path because a checkpoint already exists in %s'
         % FLAGS.train_dir)
     return None
@@ -361,12 +361,12 @@ def _get_init_fn():
     else:
       variables_to_restore.append(var)
 
-  if tf.gfile.IsDirectory(FLAGS.checkpoint_path):
+  if tf.io.gfile.isdir(FLAGS.checkpoint_path):
     checkpoint_path = tf.train.latest_checkpoint(FLAGS.checkpoint_path)
   else:
     checkpoint_path = FLAGS.checkpoint_path
 
-  tf.logging.info('Fine-tuning from %s' % checkpoint_path)
+  tf.compat.v1.logging.info('Fine-tuning from %s' % checkpoint_path)
 
   return slim.assign_from_checkpoint_fn(
       checkpoint_path,
@@ -381,13 +381,13 @@ def _get_variables_to_train():
     A list of variables to train by the optimizer.
   """
   if FLAGS.trainable_scopes is None:
-    return tf.trainable_variables()
+    return tf.compat.v1.trainable_variables()
   else:
     scopes = [scope.strip() for scope in FLAGS.trainable_scopes.split(',')]
 
   variables_to_train = []
   for scope in scopes:
-    variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope)
+    variables = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope)
     variables_to_train.extend(variables)
   return variables_to_train
 
@@ -396,7 +396,7 @@ def main(_):
   if not FLAGS.dataset_dir:
     raise ValueError('You must supply the dataset directory with --dataset_dir')
 
-  tf.logging.set_verbosity(tf.logging.INFO)
+  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
   with tf.Graph().as_default():
     #######################
     # Config model_deploy #
@@ -451,7 +451,7 @@ def main(_):
 
       image = image_preprocessing_fn(image, train_image_size, train_image_size)
 
-      images, labels = tf.train.batch(
+      images, labels = tf.compat.v1.train.batch(
           [image, label],
           batch_size=FLAGS.batch_size,
           num_threads=FLAGS.num_preprocessing_threads,
@@ -482,29 +482,29 @@ def main(_):
       return end_points
 
     # Gather initial summaries.
-    summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
+    summaries = set(tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.SUMMARIES))
 
     clones = model_deploy.create_clones(deploy_config, clone_fn, [batch_queue])
     first_clone_scope = deploy_config.clone_scope(0)
     # Gather update_ops from the first clone. These contain, for example,
     # the updates for the batch_norm variables created by network_fn.
-    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS, first_clone_scope)
+    update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS, first_clone_scope)
 
     # Add summaries for end_points.
     end_points = clones[0].outputs
     for end_point in end_points:
       x = end_points[end_point]
-      summaries.add(tf.summary.histogram('activations/' + end_point, x))
-      summaries.add(tf.summary.scalar('sparsity/' + end_point,
+      summaries.add(tf.compat.v1.summary.histogram('activations/' + end_point, x))
+      summaries.add(tf.compat.v1.summary.scalar('sparsity/' + end_point,
                                       tf.nn.zero_fraction(x)))
 
     # Add summaries for losses.
-    for loss in tf.get_collection(tf.GraphKeys.LOSSES, first_clone_scope):
-      summaries.add(tf.summary.scalar('losses/%s' % loss.op.name, loss))
+    for loss in tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.LOSSES, first_clone_scope):
+      summaries.add(tf.compat.v1.summary.scalar('losses/%s' % loss.op.name, loss))
 
     # Add summaries for variables.
     for variable in slim.get_model_variables():
-      summaries.add(tf.summary.histogram(variable.op.name, variable))
+      summaries.add(tf.compat.v1.summary.histogram(variable.op.name, variable))
 
     #################################
     # Configure the moving averages #
@@ -526,12 +526,12 @@ def main(_):
     with tf.device(deploy_config.optimizer_device()):
       learning_rate = _configure_learning_rate(dataset.num_samples, global_step)
       optimizer = _configure_optimizer(learning_rate)
-      summaries.add(tf.summary.scalar('learning_rate', learning_rate))
+      summaries.add(tf.compat.v1.summary.scalar('learning_rate', learning_rate))
 
     if FLAGS.sync_replicas:
       # If sync_replicas is enabled, the averaging will be done in the chief
       # queue runner.
-      optimizer = tf.train.SyncReplicasOptimizer(
+      optimizer = tf.compat.v1.train.SyncReplicasOptimizer(
           opt=optimizer,
           replicas_to_aggregate=FLAGS.replicas_to_aggregate,
           total_num_replicas=FLAGS.worker_replicas,
@@ -550,7 +550,7 @@ def main(_):
         optimizer,
         var_list=variables_to_train)
     # Add total_loss to summary.
-    summaries.add(tf.summary.scalar('total_loss', total_loss))
+    summaries.add(tf.compat.v1.summary.scalar('total_loss', total_loss))
 
     # Create gradient updates.
     grad_updates = optimizer.apply_gradients(clones_gradients,
@@ -563,11 +563,11 @@ def main(_):
 
     # Add the summaries from the first clone. These contain the summaries
     # created by model_fn and either optimize_clones() or _gather_clone_loss().
-    summaries |= set(tf.get_collection(tf.GraphKeys.SUMMARIES,
+    summaries |= set(tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.SUMMARIES,
                                        first_clone_scope))
 
     # Merge all summaries together.
-    summary_op = tf.summary.merge(list(summaries), name='summary_op')
+    summary_op = tf.compat.v1.summary.merge(list(summaries), name='summary_op')
 
     ###########################
     # Kicks off the training. #
@@ -587,4 +587,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-  tf.app.run()
+  tf.compat.v1.app.run()

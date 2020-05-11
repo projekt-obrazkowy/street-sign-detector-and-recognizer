@@ -81,7 +81,7 @@ def _prepare_groundtruth_for_eval(detection_model, class_agnostic,
   input_data_fields = fields.InputDataFields()
   groundtruth_boxes = tf.stack(
       detection_model.groundtruth_lists(fields.BoxListFields.boxes))
-  groundtruth_boxes_shape = tf.shape(groundtruth_boxes)
+  groundtruth_boxes_shape = tf.shape(input=groundtruth_boxes)
   # For class-agnostic models, groundtruth one-hot encodings collapse to all
   # ones.
   if class_agnostic:
@@ -92,7 +92,7 @@ def _prepare_groundtruth_for_eval(detection_model, class_agnostic,
         detection_model.groundtruth_lists(fields.BoxListFields.classes))
   label_id_offset = 1  # Applying label id offset (b/63711816)
   groundtruth_classes = (
-      tf.argmax(groundtruth_classes_one_hot, axis=2) + label_id_offset)
+      tf.argmax(input=groundtruth_classes_one_hot, axis=2) + label_id_offset)
   groundtruth = {
       input_data_fields.groundtruth_boxes: groundtruth_boxes,
       input_data_fields.groundtruth_classes: groundtruth_classes
@@ -271,7 +271,7 @@ def create_model_fn(detection_model_fn, configs, hparams, use_tpu=False):
 
     preprocessed_images = features[fields.InputDataFields.image]
     if use_tpu and train_config.use_bfloat16:
-      with tf.contrib.tpu.bfloat16_scope():
+      with tf.compat.v1.tpu.bfloat16_scope():
         prediction_dict = detection_model.predict(
             preprocessed_images,
             features[fields.InputDataFields.true_image_shape])
@@ -308,13 +308,13 @@ def create_model_fn(detection_model_fn, configs, hparams, use_tpu=False):
         if use_tpu:
 
           def tpu_scaffold():
-            tf.train.init_from_checkpoint(train_config.fine_tune_checkpoint,
+            tf.compat.v1.train.init_from_checkpoint(train_config.fine_tune_checkpoint,
                                           available_var_map)
-            return tf.train.Scaffold()
+            return tf.compat.v1.train.Scaffold()
 
           scaffold_fn = tpu_scaffold
         else:
-          tf.train.init_from_checkpoint(train_config.fine_tune_checkpoint,
+          tf.compat.v1.train.init_from_checkpoint(train_config.fine_tune_checkpoint,
                                         available_var_map)
 
     if mode in (tf.estimator.ModeKeys.TRAIN, tf.estimator.ModeKeys.EVAL):
@@ -338,13 +338,13 @@ def create_model_fn(detection_model_fn, configs, hparams, use_tpu=False):
 
       # TODO(rathodv): Stop creating optimizer summary vars in EVAL mode once we
       # can write learning rate summaries on TPU without host calls.
-      global_step = tf.train.get_or_create_global_step()
+      global_step = tf.compat.v1.train.get_or_create_global_step()
       training_optimizer, optimizer_summary_vars = optimizer_builder.build(
           train_config.optimizer)
 
     if mode == tf.estimator.ModeKeys.TRAIN:
       if use_tpu:
-        training_optimizer = tf.contrib.tpu.CrossShardOptimizer(
+        training_optimizer = tf.compat.v1.tpu.CrossShardOptimizer(
             training_optimizer)
 
       # Optionally freeze some layers by setting their gradients to be zero.
@@ -356,7 +356,7 @@ def create_model_fn(detection_model_fn, configs, hparams, use_tpu=False):
           train_config.freeze_variables
           if train_config.freeze_variables else None)
       trainable_variables = tf.contrib.framework.filter_variables(
-          tf.trainable_variables(),
+          tf.compat.v1.trainable_variables(),
           include_patterns=include_variables,
           exclude_patterns=exclude_variables)
 
@@ -366,7 +366,7 @@ def create_model_fn(detection_model_fn, configs, hparams, use_tpu=False):
 
       if not use_tpu:
         for var in optimizer_summary_vars:
-          tf.summary.scalar(var.op.name, var)
+          tf.compat.v1.summary.scalar(var.op.name, var)
       summaries = [] if use_tpu else None
       if train_config.summarize_gradients:
         summaries = ['gradients', 'gradient_norm', 'global_gradient_norm']
@@ -384,7 +384,7 @@ def create_model_fn(detection_model_fn, configs, hparams, use_tpu=False):
     if mode == tf.estimator.ModeKeys.PREDICT:
       exported_output = exporter_lib.add_output_tensor_nodes(detections)
       export_outputs = {
-          tf.saved_model.signature_constants.PREDICT_METHOD_NAME:
+          tf.saved_model.PREDICT_METHOD_NAME:
               tf.estimator.export.PredictOutput(exported_output)
       }
 
@@ -438,7 +438,7 @@ def create_model_fn(detection_model_fn, configs, hparams, use_tpu=False):
       eval_metric_ops = eval_util.get_eval_metric_ops_for_evaluators(
           eval_config, list(category_index.values()), eval_dict)
       for loss_key, loss_tensor in iter(losses_dict.items()):
-        eval_metric_ops[loss_key] = tf.metrics.mean(loss_tensor)
+        eval_metric_ops[loss_key] = tf.compat.v1.metrics.mean(loss_tensor)
       for var in optimizer_summary_vars:
         eval_metric_ops[var.op.name] = (var, tf.no_op())
       if vis_metric_ops is not None:
@@ -450,14 +450,14 @@ def create_model_fn(detection_model_fn, configs, hparams, use_tpu=False):
         variables_to_restore = variable_averages.variables_to_restore()
         keep_checkpoint_every_n_hours = (
             train_config.keep_checkpoint_every_n_hours)
-        saver = tf.train.Saver(
+        saver = tf.compat.v1.train.Saver(
             variables_to_restore,
             keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours)
-        scaffold = tf.train.Scaffold(saver=saver)
+        scaffold = tf.compat.v1.train.Scaffold(saver=saver)
 
     # EVAL executes on CPU, so use regular non-TPU EstimatorSpec.
     if use_tpu and mode != tf.estimator.ModeKeys.EVAL:
-      return tf.contrib.tpu.TPUEstimatorSpec(
+      return tf.compat.v1.estimator.tpu.TPUEstimatorSpec(
           mode=mode,
           scaffold_fn=scaffold_fn,
           predictions=detections,
@@ -469,12 +469,12 @@ def create_model_fn(detection_model_fn, configs, hparams, use_tpu=False):
       if scaffold is None:
         keep_checkpoint_every_n_hours = (
             train_config.keep_checkpoint_every_n_hours)
-        saver = tf.train.Saver(
+        saver = tf.compat.v1.train.Saver(
             sharded=True,
             keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours,
             save_relative_paths=True)
-        tf.add_to_collection(tf.GraphKeys.SAVERS, saver)
-        scaffold = tf.train.Scaffold(saver=saver)
+        tf.compat.v1.add_to_collection(tf.compat.v1.GraphKeys.SAVERS, saver)
+        scaffold = tf.compat.v1.train.Scaffold(saver=saver)
       return tf.estimator.EstimatorSpec(
           mode=mode,
           predictions=detections,
@@ -570,7 +570,7 @@ def create_estimator_and_inputs(run_config,
   })
   if override_eval_num_epochs:
     kwargs.update({'eval_num_epochs': 1})
-    tf.logging.warning(
+    tf.compat.v1.logging.warning(
         'Forced number of epochs for all eval validations to be 1.')
   configs = merge_external_params_with_configs(
       configs, hparams, kwargs_dict=kwargs)
@@ -583,7 +583,7 @@ def create_estimator_and_inputs(run_config,
   eval_on_train_input_config.sample_1_of_n_examples = (
       sample_1_of_n_eval_on_train_examples)
   if override_eval_num_epochs and eval_on_train_input_config.num_epochs != 1:
-    tf.logging.warning('Expected number of evaluation epochs is 1, but '
+    tf.compat.v1.logging.warning('Expected number of evaluation epochs is 1, but '
                        'instead encountered `eval_on_train_input_config'
                        '.num_epochs` = '
                        '{}. Overwriting `num_epochs` to 1.'.format(
@@ -619,11 +619,11 @@ def create_estimator_and_inputs(run_config,
       model_config=model_config, predict_input_config=eval_input_configs[0])
 
   export_to_tpu = hparams.get('export_to_tpu', False)
-  tf.logging.info('create_estimator_and_inputs: use_tpu %s, export_to_tpu %s',
+  tf.compat.v1.logging.info('create_estimator_and_inputs: use_tpu %s, export_to_tpu %s',
                   use_tpu, export_to_tpu)
   model_fn = model_fn_creator(detection_model_fn, configs, hparams, use_tpu)
   if use_tpu_estimator:
-    estimator = tf.contrib.tpu.TPUEstimator(
+    estimator = tf.compat.v1.estimator.tpu.TPUEstimator(
         model_fn=model_fn,
         train_batch_size=train_config.batch_size,
         # For each core, only batch size 1 is supported for eval.
@@ -723,28 +723,28 @@ def continuous_eval(estimator, model_dir, input_fn, train_steps, name):
   """
 
   def terminate_eval():
-    tf.logging.info('Terminating eval after 180 seconds of no checkpoints')
+    tf.compat.v1.logging.info('Terminating eval after 180 seconds of no checkpoints')
     return True
 
-  for ckpt in tf.contrib.training.checkpoints_iterator(
+  for ckpt in tf.train.checkpoints_iterator(
       model_dir, min_interval_secs=180, timeout=None,
       timeout_fn=terminate_eval):
 
-    tf.logging.info('Starting Evaluation.')
+    tf.compat.v1.logging.info('Starting Evaluation.')
     try:
       eval_results = estimator.evaluate(
           input_fn=input_fn, steps=None, checkpoint_path=ckpt, name=name)
-      tf.logging.info('Eval results: %s' % eval_results)
+      tf.compat.v1.logging.info('Eval results: %s' % eval_results)
 
       # Terminate eval job when final checkpoint is reached
       current_step = int(os.path.basename(ckpt).split('-')[1])
       if current_step >= train_steps:
-        tf.logging.info(
+        tf.compat.v1.logging.info(
             'Evaluation finished after training step %d' % current_step)
         break
 
     except tf.errors.NotFoundError:
-      tf.logging.info(
+      tf.compat.v1.logging.info(
           'Checkpoint %s no longer exists, skipping checkpoint' % ckpt)
 
 
@@ -784,7 +784,7 @@ def populate_experiment(run_config,
     An `Experiment` that defines all aspects of training, evaluation, and
     export.
   """
-  tf.logging.warning('Experiment is being deprecated. Please use '
+  tf.compat.v1.logging.warning('Experiment is being deprecated. Please use '
                      'tf.estimator.train_and_evaluate(). See model_main.py for '
                      'an example.')
   train_and_eval_dict = create_estimator_and_inputs(

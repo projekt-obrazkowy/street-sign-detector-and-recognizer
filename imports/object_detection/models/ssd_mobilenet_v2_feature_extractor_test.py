@@ -189,7 +189,7 @@ class SsdMobilenetV2FeatureExtractorTest(
     image_width = 40
     depth_multiplier = 1
     pad_to_multiple = 1
-    image_placeholder = tf.placeholder(tf.float32,
+    image_placeholder = tf.compat.v1.placeholder(tf.float32,
                                        [1, image_height, image_width, 3])
     feature_extractor = self._create_feature_extractor(depth_multiplier,
                                                        pad_to_multiple,
@@ -200,7 +200,7 @@ class SsdMobilenetV2FeatureExtractorTest(
     else:
       _ = feature_extractor.extract_features(preprocessed_image)
     self.assertTrue(any(op.type == 'FusedBatchNorm'
-                        for op in tf.get_default_graph().get_operations()))
+                        for op in tf.compat.v1.get_default_graph().get_operations()))
 
 
 if __name__ == '__main__':
