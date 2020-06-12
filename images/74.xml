@@ -1,0 +1,26 @@
+<annotation>
+	<folder>images</folder>
+	<filename>74.jpg</filename>
+	<path>/home/grewor/Documents/newStreet/street-sign-detector/images/74.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>960</width>
+		<height>720</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>no_stopping_sign</name>
+		<pose>Unspecified</pose>
+		<truncated>1</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>360</xmin>
+			<ymin>1</ymin>
+			<xmax>591</xmax>
+			<ymax>294</ymax>
+		</bndbox>
+	</object>
+</annotation>
