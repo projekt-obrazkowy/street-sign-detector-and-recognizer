@@ -1,5 +1,8 @@
 LABELS = [
-    "stop_sign"
+    "stop_sign",
+    "no_stopping_sign",
+    "no_entry_sign"
+
 ]
 
 NUMBER_OF_MAX_CLASSES = len(LABELS)
