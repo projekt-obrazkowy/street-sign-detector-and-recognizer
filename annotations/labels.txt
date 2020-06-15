@@ -1,1 +1,3 @@
 stop_sign
+no_stopping_sign
+no_entry_sign
