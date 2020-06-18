@@ -27,6 +27,8 @@ with detection_graph.as_default():
 session = tf.compat.v1.Session(graph=detection_graph)
 
 for path in sys.argv[1:]:
+    print(f'==> {path}')
+
     image = cv2.imread(path)
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image_expanded = np.expand_dims(image_rgb, axis=0)
