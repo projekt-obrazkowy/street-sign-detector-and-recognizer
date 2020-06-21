@@ -6,8 +6,6 @@ An application using Tensorflow to detect selected street signs on provided imag
 
 Currently detected signs:
 - stop
-
-Signs planned to be detected:
 - no stopping
 - no entry
 
